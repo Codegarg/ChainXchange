@@ -13,9 +13,9 @@ const MongoStore = require('connect-mongo');
 const authRoutes = require('./routes/auth.js');
 const cryptoRoutes = require('./routes/crypto.js');
 const User = require('./models/User.js');
-const Portfolio = require('./models/Portfolio.js');
 const { isAuthenticated } = require('./middleware/auth');
-const { fetchCoinGeckoDataWithCache } = require('./utils/geckoApi');
+const HomeController = require('./controllers/homeController');
+const CryptoController = require('./controllers/cryptoController');
 
 dotenv.config();
 
@@ -136,177 +136,23 @@ app.use(async (req, res, next) => {
 });
 
 // Routes
+
 app.use('/auth', authRoutes);
 app.use('/crypto', cryptoRoutes);
 
-// Home Route
-app.get('/', async (req, res) => {
-    try {
-        const cryptos = await fetchCoinGeckoDataWithCache(
-            'https://api.coingecko.com/api/v3/coins/markets',
-            {
-                vs_currency: 'usd',
-                order: 'market_cap_desc',
-                per_page: 30,
-                page: 1,
-            },
-            'top_30_coins',
-            60
-        );
-        res.render('home', { 
-            title: 'Cryptocurrency Market',
-            cryptos,
-            user: res.locals.user
-        });
-    } catch (error) {
-        console.error('Error fetching crypto data:', error);
-        res.status(500).render('error', {
-            message: 'Error loading cryptocurrency data',
-            error: process.env.NODE_ENV === 'development' ? error.message : null
-        });
-    }
-});
+// Main Application Routes
+app.get('/', HomeController.showHome);
+app.get('/portfolio', isAuthenticated, CryptoController.showPortfolio);
+app.get('/profile', isAuthenticated, require('./controllers/authController').showProfile);
 
-// Profile Route
-app.get('/profile', isAuthenticated, async (req, res) => {
-    try {
-        const user = await User.findById(req.cookies.user).lean();
-        if (!user) {
-            return res.redirect('/auth/login');
-        }
-        
-        res.render('profile', {
-            title: 'Your Profile',
-            user: user
-        });
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.status(500).render('error', {
-            message: 'Error loading profile',
-            error: process.env.NODE_ENV === 'development' ? error.message : null
-        });
-    }
-});
-
-// Simple test route
-app.get('/test-profile', isAuthenticated, async (req, res) => {
-    try {
-        const user = await User.findById(req.cookies.user).lean();
-        res.json({
-            message: 'User data test',
-            user: {
-                username: user.username,
-                email: user.email,
-                wallet: user.wallet,
-                balance: user.balance
-            }
-        });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
-});
-
-// Test route without authentication
-app.get('/test-db', async (req, res) => {
-    try {
-        const userCount = await User.countDocuments();
-        const sampleUser = await User.findOne().lean();
-        res.json({
-            message: 'Database test',
-            userCount,
-            sampleUser: sampleUser ? {
-                username: sampleUser.username,
-                email: sampleUser.email,
-                wallet: sampleUser.wallet,
-                balance: sampleUser.balance
-            } : null
-        });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
-});
-
-// Portfolio Route
-app.get('/portfolio', isAuthenticated, async (req, res) => {
-    try {
-        const portfolioEntries = await Portfolio.find({ userId: req.cookies.user });
-        const coinIds = portfolioEntries.map(entry => entry.coinId);
-
-        let currentPrices = {};
-        if (coinIds.length > 0) {
-            const pricesData = await fetchCoinGeckoDataWithCache(
-                'https://api.coingecko.com/api/v3/simple/price',
-                {
-                    ids: coinIds.join(','),
-                    vs_currencies: 'usd'
-                },
-                'portfolio_prices',
-                30
-            );
-            
-            currentPrices = Object.keys(pricesData).reduce((acc, coinId) => {
-                acc[coinId] = pricesData[coinId].usd;
-                return acc;
-            }, {});
-        }
-
-        const holdings = portfolioEntries.map(holding => {
-            const currentPrice = currentPrices[holding.coinId] || 0;
-            const value = holding.quantity * currentPrice;
-            return {
-                ...holding.toObject(),
-                currentPrice,
-                value
-            };
-        });
-
-        const portfolioValue = holdings.reduce((sum, holding) => sum + holding.value, 0);
-
-        res.render('portfolio', {
-            title: 'Your Portfolio',
-            holdings,
-            portfolioValue
-        });
-    } catch (error) {
-        console.error('Portfolio error:', error);
-        res.status(500).render('error', {
-            message: 'Error loading portfolio',
-            error: process.env.NODE_ENV === 'development' ? error.message : null
-        });
-    }
-});
-
-// WebSocket Setup
+// WebSocket Setup for real-time updates
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    console.log('User connected:', socket.id);
+    
     socket.on('disconnect', () => {
-        console.log('A user disconnected:', socket.id);
+        console.log('User disconnected:', socket.id);
     });
 });
-
-// Price Updates
-async function sendPriceUpdates() {
-    try {
-        const data = await fetchCoinGeckoDataWithCache(
-            'https://api.coingecko.com/api/v3/coins/markets',
-            {
-                vs_currency: 'usd',
-                order: 'market_cap_desc',
-                per_page: 30,
-                page: 1,
-            },
-            'price_updates',
-            60
-        );
-        if (data) {
-            io.emit('priceUpdate', data);
-        }
-    } catch (error) {
-        console.error('Error in sendPriceUpdates:', error);
-    }
-}
-
-setInterval(sendPriceUpdates, 60000);
 
 // Error Handling
 app.use((req, res, next) => {

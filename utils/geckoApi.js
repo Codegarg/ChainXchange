@@ -3,6 +3,7 @@ const axios = require('axios');
 const { setTimeout: promiseTimeout } = require('timers/promises');
 
 const geckoQueue = async.queue(async (task) => {
+    console.log('Processing CoinGecko request...'); // Debug log
     let attempt = 0;
     const maxAttempts = 3;
     let lastError = null;
@@ -11,20 +12,29 @@ const geckoQueue = async.queue(async (task) => {
     while (attempt < maxAttempts) {
         attempt++;
         try {
-            console.log(`Gecko API: Attempt ${attempt} to ${task.url} with params:`, task.params);
-            const response = await axios.get(task.url, {
-                params: task.params,
-                timeout: 10000,
+            console.log('Fetching from CoinGecko:', task.url); // Temporary debug log
+            const response = await axios({
+                method: 'get',
+                url: task.url,
+                timeout: 15000,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'ChainXchange/1.0'
+                }
             });
-            console.log(`Gecko API: Success on attempt ${attempt}`);
+            
+            if (!response.data || (Array.isArray(response.data) && response.data.length === 0)) {
+                throw new Error('Empty response from CoinGecko');
+            }
+            
             result = response.data;
+            console.log('CoinGecko response success'); // Temporary debug log
             break; // Exit the loop on success
         } catch (error) {
             lastError = error;
-            console.error(`Gecko API: Attempt ${attempt} - Error:`, error.message);
             if (error.response && error.response.status === 429) {
                 const retryAfter = error.response.headers['retry-after'] || 10;
-                console.warn(`Gecko API Rate Limit: Retrying after ${retryAfter} seconds for ${task.url}`);
                 await promiseTimeout(retryAfter * 1000);
                 continue;
             } else {
@@ -49,21 +59,25 @@ function fetchCoinGeckoData(endpoint, params = {}) {
 }
 
 const cache = {};
-async function fetchCoinGeckoDataWithCache(endpoint, params, cacheKey, ttlSeconds) {
+async function fetchCoinGeckoDataWithCache(endpoint, params = null, cacheKey, ttlSeconds) {
     if (cache[cacheKey] && (Date.now() - cache[cacheKey].timestamp < ttlSeconds * 1000)) {
-        console.log(`Serving ${cacheKey} from cache`);
         return cache[cacheKey].data;
     }
     try {
         const data = await fetchCoinGeckoData(endpoint, params);
-        console.log(`Fetched and caching ${cacheKey}:`, data);
+        if (!data) {
+            throw new Error('No data received from CoinGecko');
+        }
         cache[cacheKey] = {
             data: data,
             timestamp: Date.now(),
         };
         return data;
     } catch (error) {
-        console.error(`Error fetching ${cacheKey}:`, error);
+        // Only log critical errors
+        if (error.response && error.response.status >= 500) {
+            console.error(`CoinGecko API Error:`, error.message);
+        }
         throw error;
     }
 }

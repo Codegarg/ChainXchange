@@ -1,23 +1,30 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Titillium+Web:wght@600;700&display=swap');
+
 /* CSS Variables for Theme System */
 :root {
     /* Light Theme Variables */
     --bg-primary: #ffffff;
     --bg-secondary: #f8f9fa;
-    --bg-tertiary: #f1f3f4;
-    --bg-hover: #e8eaed;
+    --bg-tertiary: rgba(248, 249, 250, 0.7);
+    --bg-hover: rgba(232, 234, 237, 0.7);
     --text-primary: #202124;
     --text-secondary: #5f6368;
     --text-muted: #9aa0a6;
-    --border-color: #dadce0;
-    --border-hover: #bdc1c6;
+    --border-color: rgba(218, 220, 224, 0.6);
+    --border-hover: rgba(189, 193, 198, 0.8);
     --accent-primary: #f0b90b;
     --accent-secondary: #fcd535;
-    --success-color: #00d4aa;
-    --success-bg: #e6fff9;
-    --danger-color: #f84960;
-    --danger-bg: #fff2f2;
+    --success-color: #02c076;
+    --success-bg: rgba(2, 192, 118, 0.1);
+    --danger-color: #f6465d;
+    --danger-bg: rgba(246, 70, 93, 0.1);
     --warning-color: #f0b90b;
-    --warning-bg: #fffbeb;
+    --warning-bg: rgba(240, 185, 11, 0.1);
+    /* Glass effect variables */
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
     --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -60,10 +67,15 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: var(--bg-primary);
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(240, 185, 11, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(2, 192, 118, 0.03) 0%, transparent 50%);
     color: var(--text-primary);
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
 }
 
 /* Navigation Styles */
@@ -239,35 +251,54 @@ nav {
 }
 
 .page-title {
-    font-size: 2rem;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 2.5rem;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, var(--accent-primary) 0%, #ff9332 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    letter-spacing: -0.02em;
+    position: relative;
+}
+
+.page-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--accent-primary);
+    border-radius: 2px;
 }
 
 .page-subtitle {
     color: var(--text-secondary);
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 400;
+    margin-top: 1rem;
+    max-width: 600px;
 }
 
 /* Card Components */
 .card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
     padding: 1.5rem;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--glass-shadow);
     transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .card:hover {
     box-shadow: var(--shadow-md);
     border-color: var(--border-hover);
+    transform: translateY(-2px);
 }
 
 .card-header {
@@ -290,17 +321,31 @@ nav {
 
 /* Table Styles */
 .table-container {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background: transparent;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.table tbody tr:hover {
+    background: var(--bg-hover);
+    transform: scale(1.01);
+    z-index: 1;
 }
 
 .table thead {
@@ -376,6 +421,10 @@ nav {
     color: var(--danger-color);
 }
 
+.change-neutral {
+    color: var(--text-secondary);
+}
+
 /* Button Styles */
 .btn {
     display: inline-flex;
@@ -394,14 +443,34 @@ nav {
 }
 
 .btn-primary {
-    background: var(--accent-primary);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     color: #000;
+    border: none;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
 }
 
 .btn-primary:hover {
-    background: var(--accent-secondary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
+}
+
+.btn-primary:hover::before {
+    opacity: 1;
 }
 
 .btn-success {
@@ -587,17 +656,38 @@ nav {
 /* Portfolio Specific */
 .portfolio-summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
 }
 
 .portfolio-value {
     text-align: center;
-    padding: 1.5rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    padding: 2rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.portfolio-value::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    opacity: 0.7;
+}
+
+.portfolio-value:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--glass-shadow);
 }
 
 .portfolio-label {
@@ -727,6 +817,53 @@ nav {
 .theme-toggle:focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
+}
+
+/* Alert Component */
+.alert {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: currentColor;
+    opacity: 0.8;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.alert-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.alert-success {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border: 1px solid rgba(0, 212, 170, 0.1);
+}
+
+.alert-danger {
+    background: var(--danger-bg);
+    color: var(--danger-color);
+    border: 1px solid rgba(248, 73, 96, 0.1);
 }
 
 /* Animation Classes */

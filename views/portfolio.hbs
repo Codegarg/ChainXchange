@@ -5,6 +5,31 @@
     <p class="page-subtitle">Track your cryptocurrency investments</p>
 </div>
 
+{{#if error}}
+    <div class="alert alert-danger">
+        <div class="alert-content">
+            <svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>{{error}}</span>
+        </div>
+    </div>
+{{/if}}
+
+{{#if success}}
+    <div class="alert alert-success">
+        <div class="alert-content">
+            <svg class="alert-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>{{success}}</span>
+        </div>
+    </div>
+{{/if}}
+
 {{#if holdings.length}}
     <!-- Portfolio Summary -->
     <div class="portfolio-summary">
@@ -58,13 +83,14 @@
                         <td class="quantity-cell">{{formatPrice quantity}}</td>
                         <td class="price-cell">${{formatPrice averageBuyPrice}}</td>
                         <td class="price-cell">${{formatPrice currentPrice}}</td>
-                        <td class="value-cell">${{formatPrice value}}</td>
-                        <td class="change-cell {{#if (gt currentPrice averageBuyPrice)}}change-positive{{else}}change-negative{{/if}}">
-                            {{#if (gt currentPrice averageBuyPrice)}}+{{/if}}{{formatPrice (subtract (multiply (divide currentPrice averageBuyPrice) 100) 100)}}%
+                        <td class="value-cell">${{formatPrice (multiply quantity currentPrice)}}</td>
+                        <td class="change-cell {{#if (eq currentPrice averageBuyPrice)}}change-neutral{{else}}{{#if (gt currentPrice averageBuyPrice)}}change-positive{{else}}change-negative{{/if}}{{/if}}">
+                            {{#if (eq currentPrice averageBuyPrice)}}0.0%{{else}}{{#if (gt currentPrice averageBuyPrice)}}+{{/if}}{{formatPrice (subtract (multiply (divide currentPrice averageBuyPrice) 100) 100)}}%{{/if}}
                         </td>
                         <td>
                             <form action="/crypto/sell" method="POST" class="action-form">
                                 <input type="hidden" name="coinId" value="{{coinId}}">
+                                <input type="hidden" name="price" value="{{currentPrice}}">
                                 <input type="number" 
                                        name="quantity" 
                                        min="0.000001" 

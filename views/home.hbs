@@ -24,7 +24,7 @@
     </div>
     <div class="stat-card">
         <div class="stat-label">Active Cryptocurrencies</div>
-        <div class="stat-value" id="active-cryptos">{{#if cryptos}}{{cryptos.length}}{{else}}30{{/if}}</div>
+    <div class="stat-value" id="active-cryptos">{{#if topCryptos}}{{topCryptos.length}}{{else}}30{{/if}}</div>
         <div class="market-status bullish">
             <div class="status-dot"></div>
             Bullish
@@ -39,7 +39,7 @@
         <div class="card-subtitle">Ranked by market capitalization</div>
     </div>
 
-    {{#if cryptos.length}}
+    {{#if topCryptos}}
         <div class="table-container">
             <table class="table">
                 <thead>
@@ -54,12 +54,12 @@
                     </tr>
                 </thead>
                 <tbody id="crypto-table">
-                    {{#each cryptos}}
+                    {{#each topCryptos}}
                         <tr data-crypto-id="{{id}}" class="fade-in">
-                            <td class="rank-cell">{{@index}}</td>
+                            <td class="rank-cell">{{market_cap_rank}}</td>
                             <td>
                                 <div class="crypto-name">
-                                    <img src="{{image}}" alt="{{name}}" class="crypto-icon" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNmMGI5MGIiLz48dGV4dCB4PSIxNiIgeT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjEyIj57e3N5bWJvbH19PC90ZXh0Pjwvc3ZnPg=='">
+                                    <img src="{{image}}" alt="{{name}}" class="crypto-icon" onerror="this.src='/images/default-coin.svg'">
                                     <div>
                                         <div class="crypto-name-text">{{name}}</div>
                                         <div class="crypto-symbol">{{symbol}}</div>

@@ -2,21 +2,28 @@
 
 <div class="container">
     <h1>{{ title }}</h1>
-    {{#if coins}}
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Price (USD)</th>
-                    <th>Buy</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each coins}}
-                <tr>
-                    <td>{{ name }} ({{ symbol }})</td>
-                    <td>{{ formatPrice current_price }}</td>
-                    <td>
+    {{#if error}}
+        <div class="alert alert-warning">
+            {{ error }}
+        </div>
+    {{/if}}
+    
+    <div id="market-data">
+        {{#if coins}}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Price (USD)</th>
+                        <th>Buy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each coins}}
+                    <tr>
+                        <td>{{ name }} ({{ symbol }})</td>
+                        <td>{{ formatPrice current_price }}</td>
+                        <td>
                         {{#if ../user}}
                         <form class="buy-form" action="/crypto/buy" method="POST">
                             <input type="hidden" name="coinId" value="{{ id }}">
