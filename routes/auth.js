@@ -76,18 +76,4 @@ router.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-router.get('/profile', isAuthenticated, async (req, res) => {
-    try {
-        const user = await User.findById(req.cookies.user).lean();
-        if (!user) {
-            res.clearCookie('user');
-            return res.redirect('/auth/login');
-        }
-        res.render('profile', { title: 'Your Profile', user: user });
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.redirect('/auth/login');
-    }
-});
-
 module.exports = router;

@@ -174,6 +174,7 @@ app.get('/profile', isAuthenticated, async (req, res) => {
         if (!user) {
             return res.redirect('/auth/login');
         }
+        
         res.render('profile', {
             title: 'Your Profile',
             user: user
@@ -184,6 +185,44 @@ app.get('/profile', isAuthenticated, async (req, res) => {
             message: 'Error loading profile',
             error: process.env.NODE_ENV === 'development' ? error.message : null
         });
+    }
+});
+
+// Simple test route
+app.get('/test-profile', isAuthenticated, async (req, res) => {
+    try {
+        const user = await User.findById(req.cookies.user).lean();
+        res.json({
+            message: 'User data test',
+            user: {
+                username: user.username,
+                email: user.email,
+                wallet: user.wallet,
+                balance: user.balance
+            }
+        });
+    } catch (error) {
+        res.json({ error: error.message });
+    }
+});
+
+// Test route without authentication
+app.get('/test-db', async (req, res) => {
+    try {
+        const userCount = await User.countDocuments();
+        const sampleUser = await User.findOne().lean();
+        res.json({
+            message: 'Database test',
+            userCount,
+            sampleUser: sampleUser ? {
+                username: sampleUser.username,
+                email: sampleUser.email,
+                wallet: sampleUser.wallet,
+                balance: sampleUser.balance
+            } : null
+        });
+    } catch (error) {
+        res.json({ error: error.message });
     }
 });
 

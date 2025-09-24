@@ -222,7 +222,12 @@ class CryptoPlatform {
 
     async fetchAndDisplayCryptos() {
         try {
-            const response = await fetch('/crypto');
+            const response = await fetch('/crypto', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
             if (response.ok) {
                 const freshData = await response.json();
                 this.updateCryptoDisplay(freshData);
@@ -270,6 +275,23 @@ class CryptoPlatform {
 
     showTooltip(e) {}
     hideTooltip(e) {}
+
+    // Method to refresh data
+    refreshData() {
+        console.log('Refreshing data...');
+        if (this.cryptoTableBody) {
+            this.fetchAndDisplayCryptos();
+        }
+    }
+
+    // Method to handle theme changes
+    handleThemeChange(theme) {
+        console.log('Theme changed to:', theme);
+        // Update any theme-specific UI elements here
+        if (this.socket && this.isConnected) {
+            this.socket.emit('theme-change', { theme });
+        }
+    }
 }
 
 // Backward compatibility functions
