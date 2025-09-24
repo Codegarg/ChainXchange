@@ -51,6 +51,10 @@
     --danger-bg: #251419;
     --warning-color: #f0b90b;
     --warning-bg: #1f1b0f;
+    /* Glass effect variables for dark theme */
+    --glass-bg: rgba(22, 26, 30, 0.8);
+    --glass-border: rgba(43, 47, 54, 0.3);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.5);
@@ -62,6 +66,92 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: transparent;
+    border: none;
+}
+
+table thead, table tbody, table tr, table th, table td {
+    background-color: inherit;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Force dark theme table styling */
+[data-theme="dark"] table {
+    background-color: #161a1e !important;
+    color: #eaecef !important;
+}
+
+[data-theme="dark"] table thead {
+    background-color: #1e2329 !important;
+}
+
+[data-theme="dark"] table tbody tr {
+    background-color: #161a1e !important;
+}
+
+[data-theme="dark"] table tbody tr:hover {
+    background-color: #2b2f36 !important;
+}
+
+[data-theme="dark"] table th,
+[data-theme="dark"] table td {
+    background-color: inherit !important;
+    color: inherit !important;
+    border-bottom: 1px solid #2b2f36 !important;
+}
+
+/* Force dark theme for market data container */
+[data-theme="dark"] #market-data {
+    background-color: rgba(22, 26, 30, 0.9) !important;
+    border: 1px solid #2b2f36 !important;
+}
+
+/* Ensure light theme works too */
+[data-theme="light"] table {
+    background-color: #ffffff !important;
+    color: #202124 !important;
+}
+
+[data-theme="light"] #market-data {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Nuclear option - force all table elements to be dark when data-theme is dark */
+html[data-theme="dark"] table,
+body[data-theme="dark"] table,
+div[data-theme="dark"] table,
+html[data-theme="dark"] #market-data,
+body[data-theme="dark"] #market-data,
+div[data-theme="dark"] #market-data {
+    background: #161a1e !important;
+    color: #eaecef !important;
+}
+
+html[data-theme="dark"] table tr,
+body[data-theme="dark"] table tr,
+html[data-theme="dark"] table tbody,
+body[data-theme="dark"] table tbody {
+    background: #161a1e !important;
+}
+
+html[data-theme="dark"] table th,
+body[data-theme="dark"] table th {
+    background: #1e2329 !important;
+    color: #b7bdc6 !important;
+}
+
+html[data-theme="dark"] table td,
+body[data-theme="dark"] table td {
+    background: inherit !important;
+    color: #eaecef !important;
 }
 
 body {
@@ -320,8 +410,9 @@ nav {
 }
 
 /* Table Styles */
-.table-container {
-    background: var(--glass-bg);
+.table-container,
+#market-data {
+    background: var(--glass-bg) !important;
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     overflow: hidden;
@@ -330,30 +421,63 @@ nav {
     -webkit-backdrop-filter: blur(8px);
 }
 
-.table {
+/* Force dark theme on all table elements */
+[data-theme="dark"] #market-data,
+[data-theme="dark"] .table-container {
+    background: rgba(22, 26, 30, 0.8) !important;
+}
+
+[data-theme="dark"] table,
+[data-theme="dark"] .table {
+    background: #161a1e !important;
+}
+
+[data-theme="dark"] table tbody tr,
+[data-theme="dark"] .table tbody tr {
+    background: #161a1e !important;
+}
+
+[data-theme="dark"] table tbody,
+[data-theme="dark"] .table tbody {
+    background: #161a1e !important;
+}
+
+.table,
+table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background: transparent;
+    background: var(--bg-secondary) !important;
 }
 
-.table tbody tr {
+.table tbody tr,
+table tbody tr {
     transition: all 0.2s ease;
     position: relative;
+    background: var(--bg-secondary) !important;
 }
 
-.table tbody tr:hover {
+/* Ensure tbody itself has proper background */
+.table tbody,
+table tbody {
+    background: var(--bg-secondary) !important;
+}
+
+.table tbody tr:hover,
+table tbody tr:hover {
     background: var(--bg-hover);
     transform: scale(1.01);
     z-index: 1;
 }
 
-.table thead {
+.table thead,
+table thead {
     background: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
 }
 
-.table th {
+.table th,
+table th {
     padding: 1rem 1.5rem;
     text-align: left;
     font-weight: 600;
@@ -364,22 +488,26 @@ nav {
     white-space: nowrap;
 }
 
-.table td {
+.table td,
+table td {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-primary);
     vertical-align: middle;
 }
 
-.table tbody tr {
+.table tbody tr,
+table tbody tr {
     transition: all 0.2s ease;
 }
 
-.table tbody tr:hover {
+.table tbody tr:hover,
+table tbody tr:hover {
     background: var(--bg-hover);
 }
 
-.table tbody tr:last-child td {
+.table tbody tr:last-child td,
+table tbody tr:last-child td {
     border-bottom: none;
 }
 
