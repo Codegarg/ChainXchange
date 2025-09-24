@@ -92,7 +92,6 @@ app.use(compression());
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
 // MongoDB Connection
-// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/crypto-trading', {
     retryWrites: true,
     w: 'majority'
