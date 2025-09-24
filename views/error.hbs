@@ -1,0 +1,14 @@
+{{!< layouts/main}}
+
+<div class="error-container">
+    <h1>Error</h1>
+    <div class="error-message">
+        <h2>{{message}}</h2>
+        {{#if error}}
+            <p>{{error}}</p>
+        {{/if}}
+    </div>
+    <div class="error-actions">
+        <a href="/" class="btn">Back to Home</a>
+    </div>
+</div>

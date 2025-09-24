@@ -1,0 +1,51 @@
+{{!< layouts/main}}
+
+<div class="container">
+    <h1>Your Portfolio</h1>
+    
+    {{#if holdings.length}}
+        <div class="portfolio-summary">
+            <h2>Total Portfolio Value: ${{formatPrice portfolioValue}}</h2>
+        </div>
+
+        <table class="portfolio-table">
+            <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th>Quantity</th>
+                    <th>Average Buy Price</th>
+                    <th>Current Price</th>
+                    <th>Total Value</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each holdings}}
+                <tr>
+                    <td>{{crypto}}</td>
+                    <td>{{formatPrice quantity}}</td>
+                    <td>${{formatPrice averageBuyPrice}}</td>
+                    <td>${{formatPrice currentPrice}}</td>
+                    <td>${{formatPrice value}}</td>
+                    <td>
+                        <form action="/crypto/sell" method="POST" class="sell-form">
+                            <input type="hidden" name="coinId" value="{{coinId}}">
+                            <input type="number" name="quantity" 
+                                   min="0.000001" max="{{quantity}}" 
+                                   step="0.000001" required 
+                                   placeholder="Amount to sell">
+                            <button type="submit" class="btn-sell">Sell</button>
+                        </form>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    {{else}}
+        <p>Your portfolio is empty. Start trading to build your portfolio!</p>
+    {{/if}}
+    
+    <div class="actions">
+        <a href="/" class="btn">Back to Market</a>
+    </div>
+</div>

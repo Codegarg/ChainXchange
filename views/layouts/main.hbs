@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Platform</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="navbar-brand">
+                <a href="/" class="logo">
+                    <span class="logo-text">ChainXchange</span>
+                </a>
+            </div>
+            <ul>
+                <li><a href="/">Home</a></li>
+                {{#if user}}
+                    <li><a href="/portfolio">Portfolio</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    <li><a href="/auth/logout">Logout</a></li>
+                {{else}}
+                    <li><a href="/auth/signup">Register</a></li>
+                    <li><a href="/auth/login">Login</a></li>
+                {{/if}}
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        {{{body}}}
+    </div>
+
+    <footer>
+        <p>&copy; {{getFullYear}} ChainXchange - Crypto Trading Platform</p>
+    </footer>
+</body>
+</html>

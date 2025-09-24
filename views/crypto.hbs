@@ -1,0 +1,47 @@
+{{!< layouts/main}}
+
+<div class="container">
+    <h1>{{ title }}</h1>
+    {{#if coins}}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price (USD)</th>
+                    <th>Buy</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each coins}}
+                <tr>
+                    <td>{{ name }} ({{ symbol }})</td>
+                    <td>{{ formatPrice current_price }}</td>
+                    <td>
+                        {{#if ../user}}
+                        <form class="buy-form" action="/crypto/buy" method="POST">
+                            <input type="hidden" name="coinId" value="{{ id }}">
+                            <input type="number" class="buy-input" name="quantity" placeholder="Qty" min="0.000001" step="0.000001" required>
+                            <input type="hidden" name="price" value="{{ current_price }}">
+                            <button type="submit">Buy</button>
+                        </form>
+                        {{else}}
+                        <a href="/auth/login">Log in to buy</a>
+                        {{/if}}
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    {{else}}
+        <p>No cryptocurrency data available.</p>
+    {{/if}}
+
+    <div class="actions">
+        {{#if user}}
+            <a href="/profile" class="btn">View Your Profile</a>
+            <a href="/portfolio" class="btn">View Your Portfolio</a>
+        {{else}}
+            <p>Log in to view your profile and portfolio.</p>
+        {{/if}}
+    </div>
+</div>

@@ -1,0 +1,87 @@
+{{!< layouts/main }}
+
+<div class="container">
+    <h1>Top Cryptocurrencies</h1>
+
+    {{#if cryptos.length}}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Symbol</th>
+                    <th>Current Price</th>
+                    <th>Market Cap</th>
+                    <th>Total Volume</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="crypto-table">
+                {{#each cryptos}}
+                    <tr data-crypto-id="{{id}}">
+                        <td>{{name}}</td>
+                        <td>{{symbol}}</td>
+                        <td class="current-price">${{formatPrice current_price}}</td>
+                        <td>${{formatNumber market_cap}}</td>
+                        <td>${{formatNumber total_volume}}</td>
+                        <td>
+                            {{#if ../user}}
+                                <form action="/crypto/buy" method="POST" class="buy-form">
+                                    <input type="hidden" name="coinId" value="{{id}}">
+                                    <input type="hidden" name="price" value="{{current_price}}">
+                                    <input type="number" 
+                                           name="quantity" 
+                                           placeholder="Quantity" 
+                                           required 
+                                           min="0.000001" 
+                                           step="0.000001"
+                                           class="quantity-input">
+                                    <button type="submit" class="btn-buy">Buy</button>
+                                </form>
+                            {{else}}
+                                <a href="/auth/login" class="btn-login">Login to Buy</a>
+                            {{/if}}
+                        </td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    {{else}}
+        <p>Loading cryptocurrency data...</p>
+    {{/if}}
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cryptoTableBody = document.querySelector('#crypto-table');
+
+        const socket = io();
+        socket.on('priceUpdate', (updatedPrices) => {
+            if (cryptoTableBody) {
+                updatedPrices.forEach(crypto => {
+                    const row = cryptoTableBody.querySelector(`tr[data-crypto-id="${crypto.id}"]`);
+                    if (row) {
+                        const priceCell = row.querySelector('.current-price');
+                        if (priceCell) {
+                            priceCell.textContent = `$${formatPrice(crypto.current_price)}`;
+                        }
+                    }
+                });
+            }
+        });
+
+        function formatPrice(price) {
+            if (price >= 1) return price.toFixed(2);
+            return price.toFixed(8);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(2) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(2) + 'K';
+            }
+            return num;
+        }
+    });
+</script>

@@ -1,0 +1,25 @@
+{{!< layouts/main}}
+
+<div class="container">
+    <h1>{{ title }}</h1>
+    {{#if user}}
+        <div class="profile-info">
+            <p>Welcome, {{ user.username }}!</p>
+            <p>Your email: {{ user.email }}</p>
+            <p>Wallet Balance: ${{ formatNumber user.wallet }}</p>
+        </div>
+    
+    {{else}}
+        <div class="auth-message">
+            <p>You are not logged in.</p>
+            <div class="auth-actions">
+                <a href="/auth/login" class="btn">Login</a>
+                <a href="/auth/signup" class="btn">Sign Up</a>
+            </div>
+        </div>
+    {{/if}}
+    
+    <div class="navigation">
+        <a href="/" class="btn-back">Back to Home</a>
+    </div>
+</div>
