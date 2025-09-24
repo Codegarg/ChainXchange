@@ -1,53 +1,169 @@
 {{!< layouts/main }}
 
-<div class="container">
-    <h1>Top Cryptocurrencies</h1>
+<div class="page-header">
+    <h1 class="page-title">Cryptocurrency Markets</h1>
+    <p class="page-subtitle">Real-time crypto prices and market data</p>
+</div>
+
+<!-- Market Statistics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Market Cap</div>
+        <div class="stat-value" id="total-market-cap">$2.1T</div>
+        <div class="stat-change positive">+2.4%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">24h Volume</div>
+        <div class="stat-value" id="total-volume">$89.2B</div>
+        <div class="stat-change negative">-1.2%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">BTC Dominance</div>
+        <div class="stat-value" id="btc-dominance">52.3%</div>
+        <div class="stat-change positive">+0.8%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Active Cryptocurrencies</div>
+        <div class="stat-value" id="active-cryptos">{{#if cryptos}}{{cryptos.length}}{{else}}30{{/if}}</div>
+        <div class="market-status bullish">
+            <div class="status-dot"></div>
+            Bullish
+        </div>
+    </div>
+</div>
+
+<!-- Cryptocurrency Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Top Cryptocurrencies</div>
+        <div class="card-subtitle">Ranked by market capitalization</div>
+    </div>
 
     {{#if cryptos.length}}
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Symbol</th>
-                    <th>Current Price</th>
-                    <th>Market Cap</th>
-                    <th>Total Volume</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="crypto-table">
-                {{#each cryptos}}
-                    <tr data-crypto-id="{{id}}">
-                        <td>{{name}}</td>
-                        <td>{{symbol}}</td>
-                        <td class="current-price">${{formatPrice current_price}}</td>
-                        <td>${{formatNumber market_cap}}</td>
-                        <td>${{formatNumber total_volume}}</td>
-                        <td>
-                            {{#if ../user}}
-                                <form action="/crypto/buy" method="POST" class="buy-form">
-                                    <input type="hidden" name="coinId" value="{{id}}">
-                                    <input type="hidden" name="price" value="{{current_price}}">
-                                    <input type="number" 
-                                           name="quantity" 
-                                           placeholder="Quantity" 
-                                           required 
-                                           min="0.000001" 
-                                           step="0.000001"
-                                           class="quantity-input">
-                                    <button type="submit" class="btn-buy">Buy</button>
-                                </form>
-                            {{else}}
-                                <a href="/auth/login" class="btn-login">Login to Buy</a>
-                            {{/if}}
-                        </td>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>24h Change</th>
+                        <th>Market Cap</th>
+                        <th>Volume (24h)</th>
+                        <th>Actions</th>
                     </tr>
-                {{/each}}
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="crypto-table">
+                    {{#each cryptos}}
+                        <tr data-crypto-id="{{id}}" class="fade-in">
+                            <td class="rank-cell">{{@index}}</td>
+                            <td>
+                                <div class="crypto-name">
+                                    <img src="{{image}}" alt="{{name}}" class="crypto-icon" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNmMGI5MGIiLz48dGV4dCB4PSIxNiIgeT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjEyIj57e3N5bWJvbH19PC90ZXh0Pjwvc3ZnPg=='">
+                                    <div>
+                                        <div class="crypto-name-text">{{name}}</div>
+                                        <div class="crypto-symbol">{{symbol}}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="price-cell">${{formatPrice current_price}}</td>
+                            <td class="change-cell {{#if (gt price_change_percentage_24h 0)}}change-positive{{else}}change-negative{{/if}}">
+                                {{#if (gt price_change_percentage_24h 0)}}+{{/if}}{{formatPrice price_change_percentage_24h}}%
+                            </td>
+                            <td>${{formatNumber market_cap}}</td>
+                            <td>${{formatNumber total_volume}}</td>
+                            <td>
+                                {{#if ../user}}
+                                    <form action="/crypto/buy" method="POST" class="action-form">
+                                        <input type="hidden" name="coinId" value="{{id}}">
+                                        <input type="hidden" name="price" value="{{current_price}}">
+                                        <input type="number" 
+                                               name="quantity" 
+                                               placeholder="0.00" 
+                                               required 
+                                               min="0.000001" 
+                                               step="0.000001"
+                                               class="form-control quantity-input">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-shopping-cart"></i>&nbsp;Buy
+                                        </button>
+                                    </form>
+                                {{else}}
+                                    <a href="/auth/login" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-sign-in-alt"></i>&nbsp;Login to Trade
+                                    </a>
+                                {{/if}}
+                            </td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
     {{else}}
-        <p>Loading cryptocurrency data...</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="empty-state-title">Loading Market Data</div>
+            <div class="empty-state-text">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Fetching cryptocurrency prices...
+                </div>
+            </div>
+        </div>
     {{/if}}
+</div>
+
+<!-- Live Price Updates Notice -->
+{{#if user}}
+<div class="card" style="margin-top: 1rem;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-broadcast-tower"></i>&nbsp;Live Market Data
+        </div>
+        <div class="card-subtitle">Real-time price updates via WebSocket connection</div>
+    </div>
+    <div id="connection-status" class="market-status bullish">
+        <div class="status-dot"></div>
+        Connected
+    </div>
+</div>
+{{/if}}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation delay to table rows
+    const rows = document.querySelectorAll('#crypto-table tr');
+    rows.forEach((row, index) => {
+        row.style.animationDelay = `${index * 0.05}s`;
+    });
+
+    // Update rank numbers starting from 1
+    const rankCells = document.querySelectorAll('.rank-cell');
+    rankCells.forEach((cell, index) => {
+        cell.textContent = index + 1;
+    });
+
+    // Auto-refresh market stats every 30 seconds
+    setInterval(() => {
+        updateMarketStats();
+    }, 30000);
+});
+
+function updateMarketStats() {
+    // This would typically fetch from an API
+    const stats = {
+        marketCap: '$2.1T',
+        volume: '$89.2B',
+        btcDominance: '52.3%'
+    };
+    
+    document.getElementById('total-market-cap').textContent = stats.marketCap;
+    document.getElementById('total-volume').textContent = stats.volume;
+    document.getElementById('btc-dominance').textContent = stats.btcDominance;
+}
+</script>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>

@@ -1,51 +1,107 @@
 {{!< layouts/main}}
 
-<div class="container">
-    <h1>Your Portfolio</h1>
-    
-    {{#if holdings.length}}
-        <div class="portfolio-summary">
-            <h2>Total Portfolio Value: ${{formatPrice portfolioValue}}</h2>
-        </div>
+<div class="page-header">
+    <h1 class="page-title">Your Portfolio</h1>
+    <p class="page-subtitle">Track your cryptocurrency investments</p>
+</div>
 
-        <table class="portfolio-table">
-            <thead>
-                <tr>
-                    <th>Coin</th>
-                    <th>Quantity</th>
-                    <th>Average Buy Price</th>
-                    <th>Current Price</th>
-                    <th>Total Value</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each holdings}}
-                <tr>
-                    <td>{{crypto}}</td>
-                    <td>{{formatPrice quantity}}</td>
-                    <td>${{formatPrice averageBuyPrice}}</td>
-                    <td>${{formatPrice currentPrice}}</td>
-                    <td>${{formatPrice value}}</td>
-                    <td>
-                        <form action="/crypto/sell" method="POST" class="sell-form">
-                            <input type="hidden" name="coinId" value="{{coinId}}">
-                            <input type="number" name="quantity" 
-                                   min="0.000001" max="{{quantity}}" 
-                                   step="0.000001" required 
-                                   placeholder="Amount to sell">
-                            <button type="submit" class="btn-sell">Sell</button>
-                        </form>
-                    </td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
-    {{else}}
-        <p>Your portfolio is empty. Start trading to build your portfolio!</p>
-    {{/if}}
-    
-    <div class="actions">
-        <a href="/" class="btn">Back to Market</a>
+{{#if holdings.length}}
+    <!-- Portfolio Summary -->
+    <div class="portfolio-summary">
+        <div class="portfolio-value">
+            <div class="portfolio-label">Total Portfolio Value</div>
+            <div class="portfolio-amount">${{formatPrice portfolioValue}}</div>
+            <div class="portfolio-change positive">+2.34%</div>
+        </div>
+        <div class="portfolio-value">
+            <div class="portfolio-label">24h Change</div>
+            <div class="portfolio-amount">$1,234.56</div>
+            <div class="portfolio-change positive">+2.34%</div>
+        </div>
+        <div class="portfolio-value">
+            <div class="portfolio-label">Total Coins</div>
+            <div class="portfolio-amount">{{holdings.length}}</div>
+        </div>
     </div>
+
+    <!-- Holdings Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Your Holdings</div>
+            <div class="card-subtitle">Current positions in your portfolio</div>
+        </div>
+        
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Quantity</th>
+                        <th>Avg. Buy Price</th>
+                        <th>Current Price</th>
+                        <th>Total Value</th>
+                        <th>P&L</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each holdings}}
+                    <tr data-crypto-id="{{coinId}}" class="fade-in">
+                        <td>
+                            <div class="crypto-name">
+                                <div>
+                                    <div class="crypto-name-text">{{crypto}}</div>
+                                    <div class="crypto-symbol">{{coinId}}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="quantity-cell">{{formatPrice quantity}}</td>
+                        <td class="price-cell">${{formatPrice averageBuyPrice}}</td>
+                        <td class="price-cell">${{formatPrice currentPrice}}</td>
+                        <td class="value-cell">${{formatPrice value}}</td>
+                        <td class="change-cell {{#if (gt currentPrice averageBuyPrice)}}change-positive{{else}}change-negative{{/if}}">
+                            {{#if (gt currentPrice averageBuyPrice)}}+{{/if}}{{formatPrice (subtract (multiply (divide currentPrice averageBuyPrice) 100) 100)}}%
+                        </td>
+                        <td>
+                            <form action="/crypto/sell" method="POST" class="action-form">
+                                <input type="hidden" name="coinId" value="{{coinId}}">
+                                <input type="number" 
+                                       name="quantity" 
+                                       min="0.000001" 
+                                       max="{{quantity}}" 
+                                       step="0.000001" 
+                                       required 
+                                       placeholder="0.00"
+                                       class="form-control quantity-input">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-minus-circle"></i>&nbsp;Sell
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{else}}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="empty-state-title">Your Portfolio is Empty</div>
+        <div class="empty-state-text">
+            Start trading to build your cryptocurrency portfolio and track your investments.
+        </div>
+        <a href="/" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-shopping-cart"></i>&nbsp;Start Trading
+        </a>
+    </div>
+{{/if}}
+
+<div style="margin-top: 2rem; text-align: center;">
+    <a href="/" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>&nbsp;Back to Markets
+    </a>
+</div>
 </div>

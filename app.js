@@ -55,6 +55,27 @@ const hbs = expressHandlebars.create({
         },
         getFullYear: function() {
             return new Date().getFullYear();
+        },
+        gt: function(a, b) {
+            return a > b;
+        },
+        lt: function(a, b) {
+            return a < b;
+        },
+        eq: function(a, b) {
+            return a === b;
+        },
+        multiply: function(a, b) {
+            return a * b;
+        },
+        divide: function(a, b) {
+            return b !== 0 ? a / b : 0;
+        },
+        subtract: function(a, b) {
+            return a - b;
+        },
+        add: function(a, b) {
+            return a + b;
         }
     }
 });
@@ -73,8 +94,6 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 // MongoDB Connection
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/crypto-trading', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     retryWrites: true,
     w: 'majority'
 })

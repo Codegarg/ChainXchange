@@ -3,38 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Trading Platform</title>
+    <title>{{#if title}}{{title}} - {{/if}}ChainXchange</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="/socket.io/socket.io.js"></script>
+    <meta name="description" content="Professional cryptocurrency trading platform with real-time market data">
+    <meta name="theme-color" content="#f0b90b">
 </head>
-<body>
+<body data-theme="dark">
     <header>
         <nav>
-            <div class="navbar-brand">
-                <a href="/" class="logo">
-                    <span class="logo-text">ChainXchange</span>
-                </a>
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <a href="/" class="logo">
+                        <i class="fas fa-link"></i>&nbsp;ChainXchange
+                    </a>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="/" class="nav-link"><i class="fas fa-home"></i>&nbsp;Markets</a></li>
+                    {{#if user}}
+                        <li class="nav-item"><a href="/portfolio" class="nav-link"><i class="fas fa-chart-pie"></i>&nbsp;Portfolio</a></li>
+                        <li class="nav-item"><a href="/profile" class="nav-link"><i class="fas fa-user"></i>&nbsp;Profile</a></li>
+                        <li class="nav-item"><a href="/auth/logout" class="nav-link"><i class="fas fa-sign-out-alt"></i>&nbsp;Logout</a></li>
+                    {{else}}
+                        <li class="nav-item"><a href="/auth/signup" class="nav-link"><i class="fas fa-user-plus"></i>&nbsp;Register</a></li>
+                        <li class="nav-item"><a href="/auth/login" class="nav-link"><i class="fas fa-sign-in-alt"></i>&nbsp;Login</a></li>
+                    {{/if}}
+                    <li class="nav-item">
+                        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                            <i class="theme-icon fas fa-sun"></i>
+                        </button>
+                    </li>
+                </ul>
             </div>
-            <ul>
-                <li><a href="/">Home</a></li>
-                {{#if user}}
-                    <li><a href="/portfolio">Portfolio</a></li>
-                    <li><a href="/profile">Profile</a></li>
-                    <li><a href="/auth/logout">Logout</a></li>
-                {{else}}
-                    <li><a href="/auth/signup">Register</a></li>
-                    <li><a href="/auth/login">Login</a></li>
-                {{/if}}
-            </ul>
         </nav>
     </header>
 
-    <div class="container">
+    <main class="container">
         {{{body}}}
-    </div>
+    </main>
 
-    <footer>
-        <p>&copy; {{getFullYear}} ChainXchange - Crypto Trading Platform</p>
+    <footer class="footer">
+        <p>&copy; {{getFullYear}} ChainXchange - Professional Crypto Trading Platform</p>
     </footer>
+
+    <script src="/js/script.js"></script>
+    <script src="/js/theme.js"></script>
 </body>
 </html>

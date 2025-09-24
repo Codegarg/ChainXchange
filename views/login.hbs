@@ -1,25 +1,66 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-</head>
-<body>
-    <h1>{{ title }}</h1>
+{{!< layouts/main}}
+
+<div class="page-header">
+    <h1 class="page-title">Welcome Back</h1>
+    <p class="page-subtitle">Sign in to your ChainXchange account</p>
+</div>
+
+<div class="card" style="max-width: 400px; margin: 0 auto;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fas fa-sign-in-alt"></i>&nbsp;Login
+        </div>
+        <div class="card-subtitle">Access your trading account</div>
+    </div>
+
     {{#if error}}
-    <p style="color: red;">{{ error }}</p>
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>&nbsp;{{error}}
+        </div>
     {{/if}}
+
     <form action="/auth/login" method="POST">
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+        <div class="form-group">
+            <label for="username" class="form-label">
+                <i class="fas fa-user"></i>&nbsp;Username
+            </label>
+            <input type="text" 
+                   id="username" 
+                   name="username" 
+                   class="form-control" 
+                   placeholder="Enter your username"
+                   required 
+                   autocomplete="username">
         </div>
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+        
+        <div class="form-group">
+            <label for="password" class="form-label">
+                <i class="fas fa-lock"></i>&nbsp;Password
+            </label>
+            <input type="password" 
+                   id="password" 
+                   name="password" 
+                   class="form-control" 
+                   placeholder="Enter your password"
+                   required 
+                   autocomplete="current-password">
         </div>
-        <button type="submit">Login</button>
+        
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+            <i class="fas fa-sign-in-alt"></i>&nbsp;Sign In
+        </button>
     </form>
-    <p>Don't have an account? <a href="/auth/signup">Sign Up</a></p>
-    <a href="/">Back to Home</a>
-</body>
-</html>
+    
+    <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Don't have an account?</p>
+        <a href="/auth/signup" class="btn btn-secondary">
+            <i class="fas fa-user-plus"></i>&nbsp;Create Account
+        </a>
+    </div>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="/" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>&nbsp;Back to Markets
+    </a>
+</div>

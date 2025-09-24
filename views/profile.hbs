@@ -1,25 +1,90 @@
 {{!< layouts/main}}
 
-<div class="container">
-    <h1>{{ title }}</h1>
-    {{#if user}}
-        <div class="profile-info">
-            <p>Welcome, {{ user.username }}!</p>
-            <p>Your email: {{ user.email }}</p>
-            <p>Wallet Balance: ${{ formatNumber user.wallet }}</p>
+<div class="page-header">
+    <h1 class="page-title">Profile</h1>
+    <p class="page-subtitle">Manage your account settings and information</p>
+</div>
+
+{{#if user}}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Username</div>
+            <div class="stat-value">{{user.username}}</div>
         </div>
-    
-    {{else}}
-        <div class="auth-message">
-            <p>You are not logged in.</p>
-            <div class="auth-actions">
-                <a href="/auth/login" class="btn">Login</a>
-                <a href="/auth/signup" class="btn">Sign Up</a>
+        <div class="stat-card">
+            <div class="stat-label">Email</div>
+            <div class="stat-value">{{user.email}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Wallet Balance</div>
+            <div class="stat-value">${{formatNumber user.wallet}}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Account Status</div>
+            <div class="market-status bullish">
+                <div class="status-dot"></div>
+                Active
             </div>
         </div>
-    {{/if}}
-    
-    <div class="navigation">
-        <a href="/" class="btn-back">Back to Home</a>
     </div>
-</div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-user-circle"></i>&nbsp;Account Information
+            </div>
+            <div class="card-subtitle">Your ChainXchange account details</div>
+        </div>
+        
+        <div style="padding: 1rem 0;">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <div class="form-control" style="background: var(--bg-hover); cursor: not-allowed;">
+                    {{user.username}}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <div class="form-control" style="background: var(--bg-hover); cursor: not-allowed;">
+                    {{user.email}}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Wallet Balance</label>
+                <div class="form-control" style="background: var(--bg-hover); cursor: not-allowed;">
+                    ${{formatNumber user.wallet}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/portfolio" class="btn btn-primary" style="margin-right: 1rem;">
+            <i class="fas fa-chart-pie"></i>&nbsp;View Portfolio
+        </a>
+        <a href="/" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>&nbsp;Back to Markets
+        </a>
+    </div>
+
+{{else}}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-user-slash"></i>
+        </div>
+        <div class="empty-state-title">Not Logged In</div>
+        <div class="empty-state-text">
+            Please sign in to view your profile and account information.
+        </div>
+        <div style="margin-top: 1rem;">
+            <a href="/auth/login" class="btn btn-primary" style="margin-right: 1rem;">
+                <i class="fas fa-sign-in-alt"></i>&nbsp;Login
+            </a>
+            <a href="/auth/signup" class="btn btn-secondary">
+                <i class="fas fa-user-plus"></i>&nbsp;Sign Up
+            </a>
+        </div>
+    </div>
+{{/if}}
