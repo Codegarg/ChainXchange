@@ -1040,3 +1040,266 @@ table tbody tr:last-child td {
     border-radius: 50%;
     background: currentColor;
 }
+
+/* Chart Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal.show {
+    display: block !important;
+}
+
+.modal-content {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    margin: 5% auto;
+    padding: 0;
+    width: 90%;
+    max-width: 900px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.close {
+    color: var(--text-secondary);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    line-height: 1;
+}
+
+.close:hover,
+.close:focus {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.chart-period-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.chart-period-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.chart-period-btn.active {
+    background: var(--accent-primary);
+    color: #000;
+    border-color: var(--accent-primary);
+}
+
+.chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.loading-spinner {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-secondary);
+    font-size: 1rem;
+    z-index: 10;
+    text-align: center;
+}
+
+.loading-spinner::before {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--accent-primary);
+    animation: spin 1s linear infinite;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Table action buttons alignment */
+.table td {
+    vertical-align: middle;
+}
+
+.table .chart-btn {
+    margin: 0.25rem 0;
+}
+
+/* Action buttons container for better layout */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    min-height: 36px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: #000000;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    min-width: 85px;
+    font-family: inherit;
+}
+
+.chart-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.chart-btn::after {
+    content: "📈";
+    font-size: 1rem;
+    margin-right: 0.25rem;
+}
+
+.chart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
+}
+
+.chart-btn:hover::before {
+    opacity: 1;
+}
+
+.chart-btn:active {
+    transform: translateY(0);
+}
+
+.chart-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(240, 185, 11, 0.2);
+}
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .chart-btn {
+    color: #000000;
+}
+
+[data-theme="dark"] .chart-btn:hover {
+    box-shadow: 0 4px 15px rgba(240, 185, 11, 0.4);
+}
+
+/* Responsive Chart Modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .chart-container {
+        height: 300px;
+        padding: 0.5rem;
+    }
+    
+    .chart-controls {
+        justify-content: center;
+    }
+    
+    .chart-period-btn {
+        flex: 1;
+        min-width: 50px;
+        text-align: center;
+    }
+}
+
+/* Dark theme adjustments for modal */
+[data-theme="dark"] .modal-content {
+    background: rgba(22, 26, 30, 0.95);
+    border-color: rgba(43, 47, 54, 0.5);
+}
+
+[data-theme="dark"] .chart-container {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}

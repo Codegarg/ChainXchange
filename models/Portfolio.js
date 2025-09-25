@@ -5,7 +5,9 @@ const portfolioSchema = new mongoose.Schema({
     coinId: { type: String, required: true },
     quantity: { type: Number, required: true, min: 0, default: 0 },
     averageBuyPrice: { type: Number, required: true },
-    crypto: { type: String, required: true }
+    crypto: { type: String, required: true },
+    image: { type: String }, // Coin image URL
+    symbol: { type: String } // Coin symbol (e.g., BTC, ETH)
 }, { 
     timestamps: true,
     collection: 'portfolios'

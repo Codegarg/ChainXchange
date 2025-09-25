@@ -74,9 +74,10 @@
                     <tr data-crypto-id="{{coinId}}" class="fade-in">
                         <td>
                             <div class="crypto-name">
+                                <img src="{{image}}" alt="{{crypto}}" class="crypto-icon" onerror="this.src='/images/default-coin.svg'">
                                 <div>
                                     <div class="crypto-name-text">{{crypto}}</div>
-                                    <div class="crypto-symbol">{{coinId}}</div>
+                                    <div class="crypto-symbol">{{#if symbol}}{{symbol}}{{else}}{{coinId}}{{/if}}</div>
                                 </div>
                             </div>
                         </td>

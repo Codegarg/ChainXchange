@@ -15,6 +15,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Price (USD)</th>
+                        <th>Chart</th>
                         <th>Buy</th>
                     </tr>
                 </thead>
@@ -23,6 +24,11 @@
                     <tr>
                         <td>{{ name }} ({{ symbol }})</td>
                         <td>{{ formatPrice current_price }}</td>
+                        <td>
+                            <button class="chart-btn" data-coin-id="{{ id }}" data-coin-name="{{ name }}" data-coin-symbol="{{ symbol }}">
+                                Chart
+                            </button>
+                        </td>
                         <td>
                         {{#if ../user}}
                         <form class="buy-form" action="/crypto/buy" method="POST">
@@ -52,3 +58,29 @@
         {{/if}}
     </div>
 </div>
+
+<!-- Chart Modal -->
+<div id="chartModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="chartTitle">Loading...</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="chart-controls">
+                <button class="chart-period-btn active" data-days="1">1D</button>
+                <button class="chart-period-btn" data-days="7">7D</button>
+                <button class="chart-period-btn" data-days="30">30D</button>
+                <button class="chart-period-btn" data-days="90">90D</button>
+                <button class="chart-period-btn" data-days="365">1Y</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <div id="chartLoading" class="loading-spinner">Loading chart data...</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/js/crypto-charts.js"></script>
