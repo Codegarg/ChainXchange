@@ -8,19 +8,19 @@
     --bg-secondary: #f8f9fa;
     --bg-tertiary: rgba(248, 249, 250, 0.7);
     --bg-hover: rgba(232, 234, 237, 0.7);
-    --text-primary: #202124;
-    --text-secondary: #5f6368;
-    --text-muted: #9aa0a6;
-    --border-color: rgba(218, 220, 224, 0.6);
-    --border-hover: rgba(189, 193, 198, 0.8);
+    --text-primary: #1a1a1a;
+    --text-secondary: #4a5568;
+    --text-muted: #718096;
+    --border-color: rgba(203, 213, 224, 0.6);
+    --border-hover: rgba(160, 174, 192, 0.8);
     --accent-primary: #f0b90b;
     --accent-secondary: #fcd535;
-    --success-color: #02c076;
-    --success-bg: rgba(2, 192, 118, 0.1);
-    --danger-color: #f6465d;
-    --danger-bg: rgba(246, 70, 93, 0.1);
-    --warning-color: #f0b90b;
-    --warning-bg: rgba(240, 185, 11, 0.1);
+    --success-color: #38a169;
+    --success-bg: rgba(56, 161, 105, 0.1);
+    --danger-color: #e53e3e;
+    --danger-bg: rgba(229, 62, 62, 0.1);
+    --warning-color: #dd6b20;
+    --warning-bg: rgba(221, 107, 32, 0.1);
     /* Glass effect variables */
     --glass-bg: rgba(255, 255, 255, 0.8);
     --glass-border: rgba(255, 255, 255, 0.2);
@@ -60,6 +60,22 @@
     --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.5);
     --gradient-primary: linear-gradient(135deg, #f0b90b, #fcd535);
     --gradient-dark: linear-gradient(135deg, #0b0e11, #161a1e);
+}
+
+/* Dark theme button adjustments */
+[data-theme="dark"] .btn-primary {
+    color: #000000;
+    text-shadow: none;
+}
+
+[data-theme="dark"] .chart-btn {
+    color: #000000;
+    text-shadow: none;
+}
+
+[data-theme="dark"] .chart-period-btn.active {
+    color: #000000;
+    text-shadow: none;
 }
 
 * {
@@ -572,11 +588,13 @@ table tbody tr:last-child td {
 
 .btn-primary {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: #000;
+    color: #1a1a1a;
     border: none;
     position: relative;
     z-index: 1;
     overflow: hidden;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary::before {
@@ -594,7 +612,8 @@ table tbody tr:last-child td {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
+    box-shadow: 0 6px 20px rgba(240, 185, 11, 0.4);
+    color: #000000;
 }
 
 .btn-primary:hover::before {
@@ -604,35 +623,39 @@ table tbody tr:last-child td {
 .btn-success {
     background: var(--success-color);
     color: white;
+    font-weight: 600;
 }
 
 .btn-success:hover {
-    background: #00b894;
+    background: #2f855a;
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
 }
 
 .btn-danger {
     background: var(--danger-color);
     color: white;
+    font-weight: 600;
 }
 
 .btn-danger:hover {
-    background: #e74c3c;
+    background: #c53030;
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
 }
 
 .btn-secondary {
-    background: var(--bg-tertiary);
+    background: var(--bg-secondary);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
+    font-weight: 600;
 }
 
 .btn-secondary:hover {
     background: var(--bg-hover);
-    border-color: var(--border-hover);
+    border-color: var(--accent-primary);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn-sm {
@@ -942,9 +965,12 @@ table tbody tr:last-child td {
 /* Focus Visible for Accessibility */
 .btn:focus-visible,
 .form-control:focus-visible,
-.theme-toggle:focus-visible {
-    outline: 2px solid var(--accent-primary);
+.theme-toggle:focus-visible,
+.chart-btn:focus-visible,
+.chart-period-btn:focus-visible {
+    outline: 3px solid var(--accent-primary);
     outline-offset: 2px;
+    box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
 }
 
 /* Alert Component */
@@ -1113,26 +1139,34 @@ table tbody tr:last-child td {
 }
 
 .chart-period-btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
+    padding: 0.6rem 1.2rem;
+    border: 2px solid var(--border-color);
     background: var(--bg-secondary);
     color: var(--text-secondary);
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .chart-period-btn:hover {
     background: var(--bg-hover);
-    border-color: var(--border-hover);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .chart-period-btn.active {
-    background: var(--accent-primary);
-    color: #000;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: #1a1a1a;
     border-color: var(--accent-primary);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
 }
 
 .chart-container {
@@ -1197,23 +1231,25 @@ table tbody tr:last-child td {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     font-size: 0.875rem;
-    font-weight: 600;
-    border-radius: 8px;
-    border: none;
+    font-weight: 700;
+    border-radius: 10px;
+    border: 2px solid transparent;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     white-space: nowrap;
-    min-height: 36px;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: #000000;
+    min-height: 40px;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color: #1a1a1a;
     position: relative;
     z-index: 1;
     overflow: hidden;
-    min-width: 85px;
+    min-width: 100px;
     font-family: inherit;
+    box-shadow: 0 2px 8px rgba(240, 185, 11, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .chart-btn::before {
@@ -1223,21 +1259,24 @@ table tbody tr:last-child td {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+    background: linear-gradient(135deg, var(--accent-secondary) 0%, #ffed4e 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: -1;
 }
 
 .chart-btn::after {
-    content: "📈";
-    font-size: 1rem;
-    margin-right: 0.25rem;
+    content: "�";
+    font-size: 1.1rem;
+    margin-right: 0.4rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 .chart-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(240, 185, 11, 0.4);
+    color: #000000;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .chart-btn:hover::before {
@@ -1245,7 +1284,8 @@ table tbody tr:last-child td {
 }
 
 .chart-btn:active {
-    transform: translateY(0);
+    transform: translateY(-1px) scale(1.01);
+    transition: transform 0.1s ease;
 }
 
 .chart-btn:focus {
