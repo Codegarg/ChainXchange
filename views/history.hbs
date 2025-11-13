@@ -1,0 +1,82 @@
+{{!< layouts/main}}
+
+<style>
+    .tx-type {
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+    .tx-buy {
+        background-color: rgba(0, 128, 0, 0.15);
+        color: var(--success-color);
+    }
+    .tx-sell {
+        background-color: rgba(255, 0, 0, 0.15);
+        color: var(--danger-color);
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">Order History</h1>
+    <p class="page-subtitle">Your past buy and sell transactions</p>
+</div>
+
+{{#if transactions.length}}
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">All Transactions</div>
+        </div>
+        
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Asset</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each transactions}}
+                    <tr class="fade-in">
+                        <td>{{this.formattedTimestamp}}</td>
+                        <td>
+                            <span class="tx-type {{#if isBuy}}tx-buy{{else}}tx-sell{{/if}}">
+                                {{this.type}}
+                            </span>
+                        </td>
+                        <td>{{this.coinName}}</td>
+                        <td class="price-cell">${{formatPrice this.price}}</td>
+                        <td class="quantity-cell">{{formatPrice this.quantity}}</td>
+                        <td class="value-cell">${{formatPrice this.totalValue}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{{else}}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-history"></i>
+        </div>
+        <div class="empty-state-title">No Transactions Yet</div>
+        <div class="empty-state-text">
+            You have not made any trades. When you do, they will appear here.
+        </div>
+        <a href="/" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-shopping-cart"></i>&nbsp;Start Trading
+        </a>
+    </div>
+{{/if}}
+
+<div style="margin-top: 2rem; text-align: center;">
+    <a href="/portfolio" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>&nbsp;Back to Portfolio
+    </a>
+</div>
