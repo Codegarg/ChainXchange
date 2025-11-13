@@ -493,6 +493,59 @@ class CryptoController {
     }
 
     /**
+     * Display user's transaction history
+     */
+    static async showHistory(req, res) {
+        try {
+            const userId = req.cookies.user;
+            const user = await User.findById(userId).lean();
+
+            if (!user) {
+                return res.redirect('/auth/login');
+            }
+
+            // Fetch all transactions for the user, sorted newest first
+            const transactions = await Transaction.find({ userId })
+                .sort({ timestamp: -1 })
+                .lean();
+
+            // Format transactions for easier display in the view
+            const formattedTransactions = transactions.map(tx => {
+                const date = new Date(tx.timestamp);
+                // Format as DD/MM/YYYY
+                const formattedDate = date.toLocaleDateString('en-GB');
+                // Format as 02:45 PM
+                const formattedTime = date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+
+                return {
+                    ...tx,
+                    coinName: tx.coinId.charAt(0).toUpperCase() + tx.coinId.slice(1),
+                    totalValue: tx.totalCost || tx.sellValue || (tx.quantity * tx.price),
+                    isBuy: tx.type === 'buy',
+                    // Add the pre-formatted timestamp string
+                    formattedTimestamp: `${formattedDate} ${formattedTime}`
+                };
+            });
+
+            res.render('history', {
+                title: 'Order History',
+                user,
+                transactions: formattedTransactions
+            });
+        } catch (error) {
+            console.error('History error:', error);
+            res.status(500).render('error', {
+                message: 'Error loading transaction history',
+                error: process.env.NODE_ENV === 'development' ? error.message : null
+            });
+        }
+    }
+
+    /**
      * Get chart data for cryptocurrency
      */
     static async getChartData(req, res) {
