@@ -191,9 +191,9 @@ class CryptoController {
             let coinData = null;
             try {
                 const coinInfo = await fetchCoinGeckoDataWithCache(
-                    https://api.coingecko.com/api/v3/coins/${coinId},
+                    `https://api.coingecko.com/api/v3/coins/${coinId}`,
                     null,
-                    coin-info-${coinId},
+                    `coin-info-${coinId}`,
                     60 * 60 * 1000 // 1 hour cache
                 );
                 coinData = {
@@ -335,7 +335,7 @@ class CryptoController {
             // Redirect with success message
             req.session.message = {
                 type: 'success',
-                text: Successfully sold ${quantityNum} ${coinId}
+                text: `Successfully sold ${quantityNum} ${coinId}`
             };
             return res.redirect('/portfolio');
         } catch (error) {
@@ -376,15 +376,15 @@ class CryptoController {
                     // Fetch both price and coin data
                     const [marketData, coinsData] = await Promise.all([
                         fetchCoinGeckoDataWithCache(
-                            https://api.coingecko.com/api/v3/simple/price?ids=${coinIds}&vs_currencies=usd&include_24hr_change=true,
+                            `https://api.coingecko.com/api/v3/simple/price?ids=${coinIds}&vs_currencies=usd&include_24hr_change=true`,
                             null,
-                            portfolio-prices-${coinIds},
+                            `portfolio-prices-${coinIds}`,
                             2 * 60 * 1000 // 2 minutes cache
                         ),
                         fetchCoinGeckoDataWithCache(
-                            https://api.coingecko.com/api/v3/coins/markets?ids=${coinIds}&vs_currency=usd&order=market_cap_desc&per_page=250&page=1,
+                            `https://api.coingecko.com/api/v3/coins/markets?ids=${coinIds}&vs_currency=usd&order=market_cap_desc&per_page=250&page=1`,
                             null,
-                            portfolio-coins-${coinIds},
+                            `portfolio-coins-${coinIds}`,
                             10 * 60 * 1000 // 10 minutes cache
                         )
                     ]);
@@ -549,7 +549,7 @@ class CryptoController {
                     totalValue: tx.totalCost || tx.sellValue || (tx.quantity * tx.price),
                     isBuy: tx.type === 'buy',
                     // Add the pre-formatted timestamp string
-                    formattedTimestamp: ${formattedDate} ${formattedTime}
+                    formattedTimestamp: `${formattedDate} ${formattedTime}`
                 };
             });
 
@@ -583,9 +583,9 @@ class CryptoController {
             
             // Set a shorter timeout for chart requests
             const chartDataPromise = fetchCoinGeckoDataWithCache(
-                https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days},
+                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
                 null,
-                chart-${coinId}-${days},
+                `chart-${coinId}-${days}`,
                 5 * 60 * 1000 // 5 minutes cache
             );
             

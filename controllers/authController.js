@@ -173,7 +173,7 @@ class AuthController {
                     totalValue: tx.totalCost || tx.sellValue || (tx.quantity * tx.price),
                     isBuy: tx.type === 'buy',
                     // Add the pre-formatted timestamp string
-                    formattedTimestamp: ${formattedDate} ${formattedTime}
+                    formattedTimestamp: `${formattedDate} ${formattedTime}`
                 };
             });
             
