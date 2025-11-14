@@ -9,6 +9,9 @@ router.post('/buy', isAuthenticated, CryptoController.buyCrypto);
 router.post('/sell', isAuthenticated, CryptoController.sellCrypto);
 router.get('/chart-data/:coinId', CryptoController.getChartData);
 
+// Add this new route for order history
+router.get('/history', isAuthenticated, CryptoController.showHistory);
+
 // Debug route for testing chart data
 router.get('/test-chart/:coinId', (req, res) => {
     const { coinId } = req.params;
