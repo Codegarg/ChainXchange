@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const Transaction = require('../models/Transaction'); // Import Transaction model
 
 /**
  * Authentication Controller
@@ -139,14 +140,49 @@ class AuthController {
      */
     static async showProfile(req, res) {
         try {
-            const user = await User.findById(req.cookies.user).lean();
+            const userId = req.cookies.user;
+            const user = await User.findById(userId).lean();
+            
             if (!user) {
                 return res.redirect('/auth/login');
             }
+
+            // --- Start: Added Logic from cryptoController.showHistory ---
+
+            // Fetch all transactions for the user, sorted newest first
+            const transactions = await Transaction.find({ userId })
+                .sort({ timestamp: -1 })
+                .limit(10) // Limit to the 10 most recent for the profile page
+                .lean();
+
+            // Format transactions for easier display in the view
+            const formattedTransactions = transactions.map(tx => {
+                const date = new Date(tx.timestamp);
+                // Format as DD/MM/YYYY
+                const formattedDate = date.toLocaleDateString('en-GB');
+                // Format as 02:45 PM
+                const formattedTime = date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+
+                return {
+                    ...tx,
+                    coinName: tx.coinId.charAt(0).toUpperCase() + tx.coinId.slice(1),
+                    totalValue: tx.totalCost || tx.sellValue || (tx.quantity * tx.price),
+                    isBuy: tx.type === 'buy',
+                    // Add the pre-formatted timestamp string
+                    formattedTimestamp: ${formattedDate} ${formattedTime}
+                };
+            });
             
+            // --- End: Added Logic ---
+
             res.render('profile', {
                 title: 'Your Profile',
-                user: user
+                user: user,
+                transactions: formattedTransactions // Pass transactions to the view
             });
         } catch (error) {
             console.error('Profile error:', error);

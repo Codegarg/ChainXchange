@@ -16,12 +16,71 @@
         background-color: rgba(255, 0, 0, 0.15);
         color: var(--danger-color);
     }
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        background-color: var(--bg-secondary);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .filter-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+    .filter-group select {
+        min-width: 150px;
+    }
+    .filter-bar .btn {
+        align-self: flex-end;
+        height: 38px; /* Match form-control height */
+    }
 </style>
 
 <div class="page-header">
     <h1 class="page-title">Order History</h1>
     <p class="page-subtitle">Your past buy and sell transactions</p>
 </div>
+
+<form method="GET" action="/crypto/history" class="filter-bar">
+    <div class="filter-group">
+        <label for="type">Type</label>
+        <select name="type" id="type" class="form-control">
+            <option value="all" {{#if (eq currentOptions.type "all")}}selected{{/if}}>All Types</option>
+            <option value="buy" {{#if (eq currentOptions.type "buy")}}selected{{/if}}>Buy</option>
+            <option value="sell" {{#if (eq currentOptions.type "sell")}}selected{{/if}}>Sell</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="sortBy">Sort By</label>
+        <select name="sortBy" id="sortBy" class="form-control">
+            <option value="timestamp" {{#if (eq currentOptions.sortBy "timestamp")}}selected{{/if}}>Date</option>
+            <option value="type" {{#if (eq currentOptions.sortBy "type")}}selected{{/if}}>Type</option>
+            <option value="price" {{#if (eq currentOptions.sortBy "price")}}selected{{/if}}>Price</option>
+            <option value="quantity" {{#if (eq currentOptions.sortBy "quantity")}}selected{{/if}}>Quantity</option>
+            <option value="totalCost" {{#if (eq currentOptions.sortBy "totalCost")}}selected{{/if}}>Total Value</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="order">Order</label>
+        <select name="order" id="order" class="form-control">
+            <option value="desc" {{#if (eq currentOptions.order "desc")}}selected{{/if}}>Descending</option>
+            <option value="asc" {{#if (eq currentOptions.order "asc")}}selected{{/if}}>Ascending</option>
+        </select>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Apply</button>
+    <a href="/crypto/history" class="btn btn-secondary">Reset</a>
+</form>
 
 {{#if transactions.length}}
     <div class="card">
@@ -65,12 +124,12 @@
         <div class="empty-state-icon">
             <i class="fas fa-history"></i>
         </div>
-        <div class="empty-state-title">No Transactions Yet</div>
+        <div class="empty-state-title">No Transactions Found</div>
         <div class="empty-state-text">
-            You have not made any trades. When you do, they will appear here.
+            No transactions matched your filter criteria.
         </div>
-        <a href="/" class="btn btn-primary" style="margin-top: 1rem;">
-            <i class="fas fa-shopping-cart"></i>&nbsp;Start Trading
+        <a href="/crypto/history" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-undo"></i>&nbsp;Reset Filters
         </a>
     </div>
 {{/if}}
