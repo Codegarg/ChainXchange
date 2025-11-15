@@ -2,6 +2,10 @@ const User = require('../models/User');
 const Portfolio = require('../models/Portfolio');
 const Transaction = require('../models/Transaction');
 const { fetchCoinGeckoDataWithCache } = require('../utils/geckoApi');
+const NodeCache = require('node-cache');
+
+// Cache for portfolio data. TTL of 120 seconds (2 minutes)
+const portfolioCache = new NodeCache({ stdTTL: 120 });
 
 /**
  * Helper function to get base price for common cryptocurrencies
@@ -264,6 +268,11 @@ class CryptoController {
                 timestamp: new Date()
             });
 
+            // --- CACHE INVALIDATION ---
+            // Clear the cached portfolio data for this user
+            portfolioCache.del(`portfolio:${userId}`);
+            // --- END CACHE INVALIDATION ---
+
             res.redirect('/portfolio');
         } catch (error) {
             console.error('Buy error:', error);
@@ -332,6 +341,11 @@ class CryptoController {
             // Wait a moment for the database to update
             await new Promise(resolve => setTimeout(resolve, 500));
 
+            // --- CACHE INVALIDATION ---
+            // Clear the cached portfolio data for this user
+            portfolioCache.del(`portfolio:${userId}`);
+            // --- END CACHE INVALIDATION ---
+
             // Redirect with success message
             req.session.message = {
                 type: 'success',
@@ -355,6 +369,25 @@ class CryptoController {
     static async showPortfolio(req, res) {
         try {
             const userId = req.cookies.user;
+            
+            // --- PORTFOLIO CACHE CHECK ---
+            const cacheKey = `portfolio:${userId}`;
+            const cachedData = portfolioCache.get(cacheKey);
+            
+            if (cachedData) {
+                // console.log(`[Cache HIT] Using cached portfolio for ${userId}`); // Optional debug log
+                return res.render('portfolio', {
+                    title: 'Portfolio',
+                    user: cachedData.user,
+                    holdings: cachedData.holdings,
+                    portfolioValue: cachedData.portfolioValue,
+                    totalProfitLoss: cachedData.totalProfitLoss,
+                    totalProfitLossPercentage: cachedData.totalProfitLossPercentage
+                });
+            }
+            // --- END CACHE CHECK ---
+            
+            // console.log(`[Cache MISS] Fetching portfolio for ${userId}`); // Optional debug log
             const user = await User.findById(userId);
             const portfolio = await Portfolio.find({ userId });
 
@@ -474,6 +507,17 @@ class CryptoController {
                     }));
                 }
             }
+            
+            // --- STORE DATA IN CACHE ---
+            const dataToCache = {
+                user: user.toObject(), // Store a plain object, not a Mongoose doc
+                holdings: portfolioWithCurrentPrices,
+                portfolioValue: totalPortfolioValue,
+                totalProfitLoss,
+                totalProfitLossPercentage
+            };
+            portfolioCache.set(cacheKey, dataToCache);
+            // --- END STORE DATA ---
 
             res.render('portfolio', {
                 title: 'Portfolio',
