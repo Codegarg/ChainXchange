@@ -180,7 +180,7 @@ class AuthController {
             // --- End: Added Logic ---
 
             res.render('profile', {
-                title: 'Your Profile',
+                title: 'Profile',
                 user: user,
                 transactions: formattedTransactions // Pass transactions to the view
             });

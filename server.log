@@ -1,0 +1,36 @@
+Server running on http://localhost:8000
+Connected to MongoDB
+User connected: LxgDvT-6PrEcbH_DAAAB
+User connected: bq5ldxH_aPQrpv_rAAAD
+Processing CoinGecko request...
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/some-small-coin/market_chart?vs_currency=usd&days=30
+Rate limited by CoinGecko, retrying after 14s (attempt 1)
+Fetching market data...
+Chart data error: Error: Chart request timeout
+    at Timeout._onTimeout (/Users/preri/Desktop/projcopy/ChainXchange/controllers/cryptoController.js:639:41)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+Markets error: Error: Request timeout
+    at Timeout._onTimeout (/Users/preri/Desktop/projcopy/ChainXchange/controllers/cryptoController.js:101:45)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/some-small-coin/market_chart?vs_currency=usd&days=30
+Rate limited by CoinGecko, retrying after 0s (attempt 2)
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/some-small-coin/market_chart?vs_currency=usd&days=30
+Rate limited by CoinGecko, retrying after 0s (attempt 3)
+Processing CoinGecko request...
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en
+Rate limited by CoinGecko, retrying after 0s (attempt 1)
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en
+Rate limited by CoinGecko, retrying after 0s (attempt 2)
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en
+Rate limited by CoinGecko, retrying after 0s (attempt 3)
+Processing CoinGecko request...
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/vechain/market_chart?vs_currency=usd&days=30
+CoinGecko response success
+Fetching market data...
+Processing CoinGecko request...
+Fetching from CoinGecko: https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en
+CoinGecko response success
+Fetching market data...
+Fetching market data...

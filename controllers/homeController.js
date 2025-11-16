@@ -46,7 +46,7 @@ class HomeController {
                 ];
                 console.log('Using fallback data');
                 return res.render('home', {
-                    title: 'ChainXchange - Cryptocurrency Trading Platform',
+                    title: 'Home',
                     topCryptos: fallbackData,
                     user: res.locals.user,
                     error: 'Using fallback data - live prices temporarily unavailable'
@@ -54,14 +54,14 @@ class HomeController {
             }
 
             res.render('home', {
-                title: 'ChainXchange - Cryptocurrency Trading Platform',
+                title: 'Home',
                 topCryptos,
                 user: res.locals.user
             });
         } catch (error) {
             console.error('Home page error:', error);
             res.render('home', {
-                title: 'ChainXchange - Cryptocurrency Trading Platform',
+                title: 'Home',
                 topCryptos: [],
                 user: res.locals.user,
                 error: 'Unable to load market data'
