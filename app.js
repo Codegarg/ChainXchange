@@ -39,6 +39,10 @@ const hbs = expressHandlebars.create({
             }
             return num.toString();
         },
+        formatLargeNumber: function (num) {
+            if (!num) return 'N/A';
+            return num.toLocaleString();
+        },
         formatPrice: function (price) {
             if (price == null || price === undefined) {
                 return 'N/A';

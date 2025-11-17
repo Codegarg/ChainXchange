@@ -1,13 +1,7 @@
 const async = require('async');
 const axios = require('axios');
 const { setTimeout: promiseTimeout } = require('timers/promises');
-const NodeCache = require('node-cache');
-
-// Use node-cache for a more robust in-memory cache
-const apiCache = new NodeCache({
-    stdTTL: 0, // Default TTL (0 = unlimited, but we'll set it per-call)
-    checkperiod: 120 // How often to check for expired keys
-});
+const redisClient = require('./redisClient'); // Import the shared client
 
 const geckoQueue = async.queue(async (task) => {
     console.log('Processing CoinGecko request...'); // Debug log
@@ -66,32 +60,37 @@ function fetchCoinGeckoData(endpoint, params = {}) {
 }
 
 async function fetchCoinGeckoDataWithCache(endpoint, params = null, cacheKey, ttlSeconds) {
-    // 1. Check cache using node-cache's get()
-    const cachedData = apiCache.get(cacheKey);
-    if (cachedData) {
-        // console.log(`[Cache HIT] Found data for key: ${cacheKey}`); // Optional debug log
-        return cachedData;
+    try {
+        // 1. Check cache using redisClient.get()
+        const cachedData = await redisClient.get(cacheKey);
+        
+        if (cachedData) {
+            // console.log(`[Cache HIT] Found data for key: ${cacheKey}`);
+            // Data from Redis is a string, so we must parse it
+            return JSON.parse(cachedData);
+        }
+    } catch (cacheError) {
+        console.error(`Redis GET error for key ${cacheKey}:`, cacheError.message);
+        // Don't throw, just proceed to fetch
     }
     
     // 2. If not in cache, fetch data
-    try {
-        // console.log(`[Cache MISS] Fetching data for key: ${cacheKey}`); // Optional debug log
-        const data = await fetchCoinGeckoData(endpoint, params);
-        if (!data) {
-            throw new Error('No data received from CoinGecko');
-        }
-        
-        // 3. Store in cache using node-cache's set() with the specific TTL
-        apiCache.set(cacheKey, data, ttlSeconds);
-        
-        return data;
-    } catch (error) {
-        // Only log critical errors
-        if (error.response && error.response.status >= 500) {
-            console.error(`CoinGecko API Error:`, error.message);
-        }
-        throw error;
+    // console.log(`[Cache MISS] Fetching data for key: ${cacheKey}`);
+    const data = await fetchCoinGeckoData(endpoint, params);
+    if (!data) {
+        throw new Error('No data received from CoinGecko');
     }
+        
+    // 3. Store in cache using redisClient.setEx() with the specific TTL
+    // We stringify the data because Redis stores strings
+    try {
+        await redisClient.setEx(cacheKey, ttlSeconds, JSON.stringify(data));
+    } catch (cacheError) {
+        console.error(`Redis SETEX error for key ${cacheKey}:`, cacheError.message);
+        // Don't throw, just return the fetched data
+    }
+    
+    return data;
 }
 
 module.exports = {

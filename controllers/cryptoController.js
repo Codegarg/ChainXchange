@@ -2,10 +2,10 @@ const User = require('../models/User');
 const Portfolio = require('../models/Portfolio');
 const Transaction = require('../models/Transaction');
 const { fetchCoinGeckoDataWithCache } = require('../utils/geckoApi');
-const NodeCache = require('node-cache');
+const redisClient = require('../utils/redisClient'); // Import the shared client
 
 // Cache for portfolio data. TTL of 120 seconds (2 minutes)
-const portfolioCache = new NodeCache({ stdTTL: 120 });
+const PORTFOLIO_CACHE_TTL = 120; // 2 minutes in seconds
 
 /**
  * Helper function to get base price for common cryptocurrencies
@@ -270,7 +270,11 @@ class CryptoController {
 
             // --- CACHE INVALIDATION ---
             // Clear the cached portfolio data for this user
-            portfolioCache.del(`portfolio:${userId}`);
+            try {
+                await redisClient.del(`portfolio:${userId}`);
+            } catch (cacheError) {
+                console.error(`Redis DEL error for key portfolio:${userId}:`, cacheError.message);
+            }
             // --- END CACHE INVALIDATION ---
 
             res.redirect('/portfolio');
@@ -338,12 +342,16 @@ class CryptoController {
                 timestamp: new Date()
             });
 
-            // Wait a moment for the database to update
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // --- REMOVED ARTIFICIAL DELAY ---
+            // await new Promise(resolve => setTimeout(resolve, 500));
 
             // --- CACHE INVALIDATION ---
             // Clear the cached portfolio data for this user
-            portfolioCache.del(`portfolio:${userId}`);
+            try {
+                await redisClient.del(`portfolio:${userId}`);
+            } catch (cacheError) {
+                console.error(`Redis DEL error for key portfolio:${userId}:`, cacheError.message);
+            }
             // --- END CACHE INVALIDATION ---
 
             // Redirect with success message
@@ -372,22 +380,33 @@ class CryptoController {
             
             // --- PORTFOLIO CACHE CHECK ---
             const cacheKey = `portfolio:${userId}`;
-            const cachedData = portfolioCache.get(cacheKey);
             
-            if (cachedData) {
-                // console.log(`[Cache HIT] Using cached portfolio for ${userId}`); // Optional debug log
-                return res.render('portfolio', {
-                    title: 'Portfolio',
-                    user: cachedData.user,
-                    holdings: cachedData.holdings,
-                    portfolioValue: cachedData.portfolioValue,
-                    totalProfitLoss: cachedData.totalProfitLoss,
-                    totalProfitLossPercentage: cachedData.totalProfitLossPercentage
-                });
+            try {
+                const cachedDataString = await redisClient.get(cacheKey);
+                if (cachedDataString) {
+                    // console.log(`[Cache HIT] Using cached portfolio for ${userId}`);
+                    const cachedData = JSON.parse(cachedDataString);
+                    
+                    // We need to re-fetch the user object for the layout, 
+                    // but the portfolio data is cached.
+                    const user = await User.findById(userId).lean(); 
+                    
+                    return res.render('portfolio', {
+                        title: 'Portfolio',
+                        user: user, // Use fresh user data for layout
+                        holdings: cachedData.holdings,
+                        portfolioValue: cachedData.portfolioValue,
+                        totalProfitLoss: cachedData.totalProfitLoss,
+                        totalProfitLossPercentage: cachedData.totalProfitLossPercentage
+                    });
+                }
+            } catch (cacheError) {
+                console.error(`Redis GET error for key ${cacheKey}:`, cacheError.message);
+                // Don't throw, just proceed to fetch
             }
             // --- END CACHE CHECK ---
             
-            // console.log(`[Cache MISS] Fetching portfolio for ${userId}`); // Optional debug log
+            // console.log(`[Cache MISS] Fetching portfolio for ${userId}`);
             const user = await User.findById(userId);
             const portfolio = await Portfolio.find({ userId });
 
@@ -443,23 +462,25 @@ class CryptoController {
                                 symbol = coinMarketData.symbol?.toUpperCase();
                                 crypto = coinMarketData.name;
 
-                                // Update the portfolio entry in database if missing data
+                                // --- PERFORMANCE FIX ---
+                                // Update the DB in the background, don't await it.
+                                // This stops the page load from being blocked by N+1 updates.
                                 if (!holding.image || !holding.symbol) {
-                                    try {
-                                        await Portfolio.findOneAndUpdate(
-                                            { _id: holding._id },
-                                            {
-                                                $set: {
-                                                    image: image,
-                                                    symbol: symbol,
-                                                    crypto: crypto
-                                                }
+                                    Portfolio.findOneAndUpdate(
+                                        { _id: holding._id },
+                                        {
+                                            $set: {
+                                                image: image,
+                                                symbol: symbol,
+                                                crypto: crypto
                                             }
-                                        );
-                                    } catch (updateError) {
-                                        console.error('Error updating portfolio image:', updateError);
-                                    }
+                                        }
+                                    ).catch(updateError => {
+                                        // Log the error but don't block the request
+                                        console.error('Error updating portfolio image in background:', updateError);
+                                    });
                                 }
+                                // --- END PERFORMANCE FIX ---
                             } else {
                                 // Fallback values
                                 image = image || '/images/default-coin.svg';
@@ -510,13 +531,18 @@ class CryptoController {
             
             // --- STORE DATA IN CACHE ---
             const dataToCache = {
-                user: user.toObject(), // Store a plain object, not a Mongoose doc
+                // user: user.toObject(), // No need to cache user, we fetch it fresh
                 holdings: portfolioWithCurrentPrices,
                 portfolioValue: totalPortfolioValue,
                 totalProfitLoss,
                 totalProfitLossPercentage
             };
-            portfolioCache.set(cacheKey, dataToCache);
+            
+            try {
+                await redisClient.setEx(cacheKey, PORTFOLIO_CACHE_TTL, JSON.stringify(dataToCache));
+            } catch (cacheError) {
+                 console.error(`Redis SETEX error for key ${cacheKey}:`, cacheError.message);
+            }
             // --- END STORE DATA ---
 
             res.render('portfolio', {
