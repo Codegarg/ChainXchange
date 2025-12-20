@@ -649,37 +649,147 @@ class CryptoController {
     static async getChartData(req, res) {
         try {
             const { coinId } = req.params;
-            const days = req.query.days || '7';
-            
+            const timeframe = (req.query.timeframe || req.query.days || '24h').toLowerCase();
+
+            const timeframeMap = {
+                '1h': { days: '1', interval: 'minute' },
+                '24h': { days: '1' },
+                '7d': { days: '7' },
+                '1m': { days: '30' },
+                '3m': { days: '90' },
+                '1y': { days: '365' },
+                'all': { days: 'max' }
+            };
+
+            const selected = timeframeMap[timeframe] || { days: req.query.days || '7' };
+            const queryParams = [`vs_currency=usd`, `days=${selected.days}`];
+            if (selected.interval) {
+                queryParams.push(`interval=${selected.interval}`);
+            }
+
             // Set a shorter timeout for chart requests
             const chartDataPromise = fetchCoinGeckoDataWithCache(
-                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
+                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?${queryParams.join('&')}`,
                 null,
-                `chart-${coinId}-${days}`,
+                `chart-${coinId}-${timeframe}`,
                 5 * 60 * 1000 // 5 minutes cache
             );
-            
+
             // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Chart request timeout')), 10000) // 10 second timeout
             );
-            
+
             const chartData = await Promise.race([chartDataPromise, timeoutPromise]);
-            
+
             // Validate data structure
             if (!chartData || !chartData.prices || !Array.isArray(chartData.prices)) {
                 throw new Error('Invalid chart data structure');
             }
-            
+
             res.json(chartData);
         } catch (error) {
             console.error('Chart data error:', error);
-            
-            // Generate realistic fallback data based on coinId and days
+
+            // Generate realistic fallback data based on coinId and timeframe
             const basePrice = getBasePriceForCoin(req.params.coinId);
-            const mockData = generateMockChartData(basePrice, req.query.days || '7');
-            
+            const mockRange = req.query.timeframe || req.query.days || '7';
+            const mockData = generateMockChartData(basePrice, mockRange);
+
             res.json(mockData);
+        }
+    }
+
+    /**
+     * Display detailed cryptocurrency page
+     */
+    static async showCryptoDetail(req, res) {
+        try {
+            const { coinId } = req.params;
+            
+            // Fetch comprehensive coin data
+            const coinData = await fetchCoinGeckoDataWithCache(
+                `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&community_data=false&developer_data=false`,
+                null,
+                `coin-detail-${coinId}`,
+                5 * 60 * 1000 // 5 minutes cache
+            );
+
+            if (!coinData) {
+                throw new Error('Coin not found');
+            }
+
+            // Fetch 24h chart data for the main chart
+            const chartData = await fetchCoinGeckoDataWithCache(
+                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`,
+                null,
+                `chart-${coinId}-1`,
+                5 * 60 * 1000
+            );
+
+            // Fetch news (using a placeholder for now, you can integrate a news API later)
+            const newsData = [];
+
+            res.render('crypto-detail', {
+                title: `${coinData.name} (${coinData.symbol?.toUpperCase()})`,
+                coin: {
+                    id: coinData.id,
+                    name: coinData.name,
+                    symbol: coinData.symbol?.toUpperCase(),
+                    image: coinData.image?.large,
+                    current_price: coinData.market_data?.current_price?.usd,
+                    price_change_24h: coinData.market_data?.price_change_24h,
+                    price_change_percentage_24h: coinData.market_data?.price_change_percentage_24h,
+                    market_cap: coinData.market_data?.market_cap?.usd,
+                    market_cap_rank: coinData.market_cap_rank,
+                    total_volume: coinData.market_data?.total_volume?.usd,
+                    high_24h: coinData.market_data?.high_24h?.usd,
+                    low_24h: coinData.market_data?.low_24h?.usd,
+                    ath: coinData.market_data?.ath?.usd,
+                    ath_date: coinData.market_data?.ath_date?.usd,
+                    atl: coinData.market_data?.atl?.usd,
+                    atl_date: coinData.market_data?.atl_date?.usd,
+                    circulating_supply: coinData.market_data?.circulating_supply,
+                    total_supply: coinData.market_data?.total_supply,
+                    max_supply: coinData.market_data?.max_supply,
+                    description: coinData.description?.en,
+                    genesis_date: coinData.genesis_date
+                },
+                chartData: chartData?.prices || [],
+                news: newsData,
+                user: res.locals.user
+            });
+        } catch (error) {
+            console.error('Crypto detail error:', error);
+            
+            // Fallback data
+            const { coinId } = req.params;
+            const basePrice = getBasePriceForCoin(coinId);
+            
+            res.render('crypto-detail', {
+                title: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+                coin: {
+                    id: coinId,
+                    name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+                    symbol: coinId.toUpperCase().substring(0, 4),
+                    image: '/images/default-coin.svg',
+                    current_price: basePrice,
+                    price_change_24h: basePrice * 0.025,
+                    price_change_percentage_24h: 2.5,
+                    market_cap: basePrice * 1000000,
+                    market_cap_rank: 1,
+                    total_volume: basePrice * 50000,
+                    high_24h: basePrice * 1.05,
+                    low_24h: basePrice * 0.95,
+                    ath: basePrice * 2,
+                    atl: basePrice * 0.1,
+                    description: 'Cryptocurrency data temporarily unavailable.'
+                },
+                chartData: generateMockChartData(basePrice, '1').prices,
+                news: [],
+                user: res.locals.user,
+                error: 'Using fallback data - live data temporarily unavailable'
+            });
         }
     }
 }

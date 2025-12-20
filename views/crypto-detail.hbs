@@ -1,0 +1,344 @@
+{{!< layouts/main }}
+
+<div class="crypto-detail-container">
+    <!-- Back Button -->
+    <div class="back-nav">
+        <a href="/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="detail-grid">
+        <!-- Left Column - Chart and Info -->
+        <div class="detail-main">
+            <!-- Chart Section with integrated header -->
+            <div class="chart-section-full card">
+                <!-- Coin Info Header -->
+                <div class="coin-info-header">
+                    <div class="coin-info-left">
+                        <img src="{{coin.image}}" alt="{{coin.name}}" class="coin-icon-small">
+                        <div class="coin-info-text">
+                            <h1 class="coin-name">{{coin.name}}</h1>
+                            <div class="coin-meta">
+                                <span class="coin-symbol-small">{{coin.symbol}}</span>
+                                {{#if coin.market_cap_rank}}
+                                    <span class="rank-badge-small">Rank #{{coin.market_cap_rank}}</span>
+                                {{/if}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="coin-info-right">
+                        <div class="price-block">
+                            <div class="price-large">${{formatPrice coin.current_price}}</div>
+                            <div class="price-change-inline {{#if (gt coin.price_change_percentage_24h 0)}}positive{{else}}negative{{/if}}">
+                                {{#if (gt coin.price_change_percentage_24h 0)}}+{{/if}}{{formatPrice coin.price_change_24h}} ({{#if (gt coin.price_change_percentage_24h 0)}}+{{/if}}{{formatPrice coin.price_change_percentage_24h}}%) 24H
+                            </div>
+                        </div>
+                        <div class="chart-timeframes-bottom compact">
+                            <button class="timeframe-btn-bottom" data-timeframe="1h">1H</button>
+                            <button class="timeframe-btn-bottom active" data-timeframe="24h">24H</button>
+                            <button class="timeframe-btn-bottom" data-timeframe="7d">7D</button>
+                            <button class="timeframe-btn-bottom" data-timeframe="1m">1M</button>
+                            <button class="timeframe-btn-bottom" data-timeframe="3m">3M</button>
+                            <button class="timeframe-btn-bottom" data-timeframe="1y">1Y</button>
+                            <button class="timeframe-btn-bottom" data-timeframe="all">All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="chart-container-detail">
+                    <canvas id="detailChart"></canvas>
+                    <div id="chartLoading" class="chart-loading">
+                        <div class="spinner"></div>
+                        <span>Loading chart data...</span>
+                    </div>
+                </div>
+
+                <!-- Chart Footer -->
+                <div class="chart-footer">
+                    <div class="chart-type-toggle">
+                        <button class="chart-type-btn active" data-type="line">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                        <button class="chart-type-btn" data-type="candle" aria-disabled="true" title="Candles coming soon">
+                            <i class="fas fa-chart-area"></i>
+                        </button>
+                    </div>
+                    <div class="exchange-label">Aggregated Market Price (USD)</div>
+                </div>
+            </div>
+
+            <!-- Performance Section -->
+            <div class="performance-main-container card">
+                <h3 class="performance-title">
+                    Performance
+                    <i class="fas fa-info-circle info-icon"></i>
+                </h3>
+                
+                <!-- 24H Range -->
+                <div class="price-range-section">
+                    <div class="range-header">
+                        <div class="range-label">24H Low</div>
+                        <div class="range-label">24H High</div>
+                    </div>
+                    <div class="range-values">
+                        <div class="range-value-start">{{formatPrice coin.low_24h}}</div>
+                        <div class="range-slider">
+                            <div class="slider-track">
+                                <div class="slider-marker" style="left: {{calculateRangePosition coin.low_24h coin.current_price coin.high_24h}}%;">
+                                    <div class="marker-triangle">▲</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="range-value-end">{{formatPrice coin.high_24h}}</div>
+                    </div>
+                </div>
+
+                <!-- 52 Week Range -->
+                <div class="price-range-section">
+                    <div class="range-header">
+                        <div class="range-label">52W Low</div>
+                        <div class="range-label">52W High</div>
+                    </div>
+                    <div class="range-values">
+                        <div class="range-value-start">{{formatPrice coin.atl}}</div>
+                        <div class="range-slider">
+                            <div class="slider-track">
+                                <div class="slider-marker" style="left: {{calculateRangePosition coin.atl coin.current_price coin.ath}}%;">
+                                    <div class="marker-triangle">▲</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="range-value-end">{{formatPrice coin.ath}}</div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="performance-divider"></div>
+
+                <!-- Additional Metrics Grid -->
+                <div class="performance-metrics-grid">
+                    <div class="performance-metric">
+                        <div class="performance-metric-label">Market Cap</div>
+                        <div class="performance-metric-value">${{formatNumber coin.market_cap}}</div>
+                    </div>
+                    <div class="performance-metric">
+                        <div class="performance-metric-label">24H Volume</div>
+                        <div class="performance-metric-value">${{formatNumber coin.total_volume}}</div>
+                    </div>
+                    {{#if coin.circulating_supply}}
+                    <div class="performance-metric">
+                        <div class="performance-metric-label">Circulating Supply</div>
+                        <div class="performance-metric-value">{{formatNumber coin.circulating_supply}}</div>
+                    </div>
+                    {{/if}}
+                    <div class="performance-metric">
+                        <div class="performance-metric-label">24H Change</div>
+                        <div class="performance-metric-value {{#if (gt coin.price_change_percentage_24h 0)}}positive{{else}}negative{{/if}}">{{#if (gt coin.price_change_percentage_24h 0)}}+{{/if}}{{formatPrice coin.price_change_percentage_24h}}%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Sentiment / Buy-Sell Pressure -->
+            <div class="sentiment-card card" id="market-sentiment">
+                <div class="sentiment-header">
+                    <div>
+                        <h3 class="sentiment-title">Market Sentiment / Buy-Sell Pressure</h3>
+                        <p class="sentiment-subtitle">Live flow of buys vs sells updated every few seconds</p>
+                    </div>
+                    <div class="sentiment-meta">
+                        <span class="sentiment-badge">Live</span>
+                        <span class="sentiment-updated" id="sentiment-updated">Updating…</span>
+                    </div>
+                </div>
+
+                <div class="sentiment-progress-block">
+                    <div class="sentiment-labels">
+                        <span>Buy <strong id="sentiment-buy-percent">50%</strong></span>
+                        <span>Sell <strong id="sentiment-sell-percent">50%</strong></span>
+                    </div>
+                    <div class="sentiment-progress">
+                        <div class="sentiment-progress-fill buy" id="sentiment-buy-fill" style="width: 50%"></div>
+                        <div class="sentiment-progress-fill sell" id="sentiment-sell-fill" style="width: 50%"></div>
+                    </div>
+                    <div class="sentiment-pressure">Current market pressure: <span id="sentiment-pressure-label">Balanced</span></div>
+                </div>
+
+                <div class="orderflow-card">
+                    <div class="orderflow-header">
+                        <div class="orderflow-title">Live Order Flow</div>
+                        <div class="orderflow-frequency">Refreshes every 1-2s</div>
+                    </div>
+                    <div class="orderflow-table-wrapper">
+                        <table class="orderflow-table">
+                            <thead>
+                                <tr>
+                                    <th>Price</th>
+                                    <th>Buy Qty</th>
+                                    <th>Sell Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderflow-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Buy/Sell Panel -->
+        <div class="detail-sidebar">
+            <div class="trading-panel card">
+                <div class="trading-tabs">
+                    <button class="trading-tab active" data-action="buy">BUY</button>
+                    <button class="trading-tab" data-action="sell">SELL</button>
+                </div>
+
+                {{#if user}}
+                    <!-- Buy Form -->
+                    <form id="buy-form" class="trading-form active" action="/crypto/buy" method="POST">
+                        <input type="hidden" name="coinId" value="{{coin.id}}">
+                        <input type="hidden" name="price" id="buyPriceHidden" value="{{coin.current_price}}">
+
+                        <div class="order-type-buttons">
+                            <button type="button" class="order-type-btn active" data-order-action="buy" data-order-type="market">Market</button>
+                            <button type="button" class="order-type-btn" data-order-action="buy" data-order-type="limit">Limit</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Amount ({{coin.symbol}})</label>
+                            <input type="number"
+                                   name="quantity"
+                                   class="form-control-detail"
+                                   placeholder="0"
+                                   required
+                                   min="0.000001"
+                                   step="0.000001"
+                                   id="buyQuantity">
+                            <div class="fiat-hint" id="buyFiatHint">$0.00</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Price (USD)</label>
+                            <input type="number"
+                                   class="form-control-detail"
+                                   placeholder="Current market price"
+                                   step="0.01"
+                                   min="0"
+                                   id="buyLimitPrice"
+                                   disabled>
+                        </div>
+
+                        <div class="balance-info">
+                            <span>Wallet balance</span>
+                            <span class="balance-amount">{{#if user.wallet}}${{formatPrice user.wallet}}{{else}}--{{/if}}</span>
+                        </div>
+
+                        <div class="total-section">
+                            <div class="total-label">Estimated total</div>
+                            <div class="total-value" id="buyTotal">$0.00</div>
+                        </div>
+
+                        <button type="submit" class="btn-trade btn-buy">Buy {{coin.symbol}}</button>
+                    </form>
+
+                    <!-- Sell Form -->
+                    <form id="sell-form" class="trading-form" action="/crypto/sell" method="POST">
+                        <input type="hidden" name="coinId" value="{{coin.id}}">
+                        <input type="hidden" name="price" id="sellPriceHidden" value="{{coin.current_price}}">
+
+                        <div class="order-type-buttons">
+                            <button type="button" class="order-type-btn active" data-order-action="sell" data-order-type="market">Market</button>
+                            <button type="button" class="order-type-btn" data-order-action="sell" data-order-type="limit">Limit</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Amount ({{coin.symbol}})</label>
+                            <input type="number"
+                                   name="quantity"
+                                   class="form-control-detail"
+                                   placeholder="0"
+                                   required
+                                   min="0.000001"
+                                   step="0.000001"
+                                   id="sellQuantity">
+                            <div class="fiat-hint" id="sellFiatHint">$0.00</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Price (USD)</label>
+                            <input type="number"
+                                   class="form-control-detail"
+                                   placeholder="Current market price"
+                                   step="0.01"
+                                   min="0"
+                                   id="sellLimitPrice"
+                                   disabled>
+                        </div>
+
+                        <div class="balance-info">
+                            <span>Wallet balance</span>
+                            <span class="balance-amount">{{#if user.wallet}}${{formatPrice user.wallet}}{{else}}--{{/if}}</span>
+                        </div>
+
+                        <div class="total-section">
+                            <div class="total-label">Estimated total</div>
+                            <div class="total-value" id="sellTotal">$0.00</div>
+                        </div>
+
+                        <button type="submit" class="btn-trade btn-sell">Sell {{coin.symbol}}</button>
+                    </form>
+                {{else}}
+                    <div class="login-prompt">
+                        <i class="fas fa-lock"></i>
+                        <p>Please login to start trading</p>
+                        <a href="/auth/login" class="btn btn-primary">Login</a>
+                    </div>
+                {{/if}}
+            </div>
+
+            <!-- Market Status Card -->
+            <div class="market-status-card card">
+                <h4 class="card-small-title">Market Status</h4>
+                <div class="status-indicator">
+                    <div class="status-dot active"></div>
+                    <span>Market Open</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats-card card">
+                <h4 class="card-small-title">Quick Stats</h4>
+                <div class="quick-stat-row">
+                    <span>24h Volume</span>
+                    <span class="stat-value-small">${{formatNumber coin.total_volume}}</span>
+                </div>
+                <div class="quick-stat-row">
+                    <span>Market Cap</span>
+                    <span class="stat-value-small">${{formatNumber coin.market_cap}}</span>
+                </div>
+                {{#if coin.circulating_supply}}
+                <div class="quick-stat-row">
+                    <span>Circulating Supply</span>
+                    <span class="stat-value-small">{{formatNumber coin.circulating_supply}}</span>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
+<script src="/js/crypto-detail.js"></script>
+<script>
+    // Pass coin data to JavaScript
+    window.coinData = {
+        id: '{{coin.id}}',
+        name: '{{coin.name}}',
+        symbol: '{{coin.symbol}}',
+        currentPrice: {{coin.current_price}},
+        chartData: {{{json chartData}}}
+    };
+</script>
