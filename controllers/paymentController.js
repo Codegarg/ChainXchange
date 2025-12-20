@@ -91,7 +91,7 @@ class PaymentController {
 
             // Update user wallet balance
             await User.findByIdAndUpdate(userId, {
-                $inc: { wallet: amountNum, balance: amountNum }
+                $inc: { wallet: amountNum }
             });
 
             res.json({ 
@@ -163,7 +163,7 @@ class PaymentController {
             await paymentTx.save();
 
             await User.findByIdAndUpdate(userId, {
-                $inc: { wallet: -amountNum, balance: -amountNum }
+                $inc: { wallet: -amountNum }
             });
 
             res.json({ 

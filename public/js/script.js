@@ -2,6 +2,11 @@
 
 class CryptoPlatform {
     constructor() {
+        // Check if an instance already exists
+        if (CryptoPlatform.instance) {
+            return CryptoPlatform.instance;
+        }
+
         this.socket = null;
         this.cryptoTableBody = document.getElementById('crypto-table');
         this.connectionStatus = document.getElementById('connection-status');
@@ -9,6 +14,9 @@ class CryptoPlatform {
         this.priceUpdateInterval = null;
         
         this.init();
+        
+        // Assign the instance
+        CryptoPlatform.instance = this;
     }
 
     init() {

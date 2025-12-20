@@ -52,7 +52,7 @@ class AuthController {
                 username,
                 email,
                 password: hashedPassword,
-                wallet: 10000 // Starting wallet amount
+                wallet: 0 // Starting wallet amount
             });
 
             const savedUser = await newUser.save();

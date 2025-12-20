@@ -376,6 +376,18 @@ function updateTotals(action) {
     if (fiatHint) {
         fiatHint.textContent = `$${formatPrice(total)}`;
     }
+
+    // Check for insufficient balance on buy
+    if (action === 'buy') {
+        const walletBalance = parseFloat(document.querySelector('.balance-amount')?.textContent.replace('$', '').replace(',', '')) || 0;
+        const buyErrorBox = document.getElementById('buy-error-message');
+        if (total > walletBalance) {
+            buyErrorBox.textContent = 'Insufficient balance to make this purchase.';
+            buyErrorBox.style.display = 'block';
+        } else {
+            buyErrorBox.style.display = 'none';
+        }
+    }
 }
 
 /**

@@ -98,7 +98,7 @@ class CryptoController {
                     5 * 60 * 1000
                 ),
                 new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Request timeout')), 10000)
+                    setTimeout(() => reject(new Error('Request timeout')), 30000)
                 )
             ]);
 
@@ -168,7 +168,6 @@ class CryptoController {
             const { coinId, quantity, price } = req.body;
             const userId = req.cookies.user;
 
-            // Validate input
             if (!coinId || !quantity || !price) {
                 throw new Error('Missing required fields');
             }
@@ -181,8 +180,17 @@ class CryptoController {
                 throw new Error('Invalid quantity or price values');
             }
 
-            // Find user and check wallet balance
-            const user = await User.findById(userId);
+            // Start fetching user and coin data in parallel
+            const userPromise = User.findById(userId).lean();
+            const coinDataPromise = fetchCoinGeckoDataWithCache(
+                `https://api.coingecko.com/api/v3/coins/${coinId}`,
+                null,
+                `coin-info-${coinId}`,
+                60 * 60 * 1000 // 1 hour cache
+            );
+
+            const [user, coinInfo] = await Promise.all([userPromise, coinDataPromise]);
+
             if (!user) {
                 throw new Error('User not found');
             }
@@ -191,91 +199,50 @@ class CryptoController {
                 throw new Error('Insufficient funds');
             }
 
-            // Fetch coin data to get image and symbol
-            let coinData = null;
-            try {
-                const coinInfo = await fetchCoinGeckoDataWithCache(
-                    `https://api.coingecko.com/api/v3/coins/${coinId}`,
-                    null,
-                    `coin-info-${coinId}`,
-                    60 * 60 * 1000 // 1 hour cache
-                );
-                coinData = {
-                    name: coinInfo.name,
-                    symbol: coinInfo.symbol?.toUpperCase(),
-                    image: coinInfo.image?.large || coinInfo.image?.small || '/images/default-coin.svg'
-                };
-            } catch (error) {
-                console.error('Failed to fetch coin data:', error);
-                // Use fallback data
-                coinData = {
-                    name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
-                    symbol: coinId.toUpperCase().substring(0, 4),
-                    image: '/images/default-coin.svg'
-                };
+            const coinData = {
+                name: coinInfo.name || coinId.charAt(0).toUpperCase() + coinId.slice(1),
+                symbol: coinInfo.symbol?.toUpperCase() || coinId.toUpperCase().substring(0, 4),
+                image: coinInfo.image?.large || coinInfo.image?.small || '/images/default-coin.svg'
+            };
+
+            // Find existing portfolio to calculate new average price
+            const existingPortfolio = await Portfolio.findOne({ userId, coinId }).lean();
+            
+            let newAverageBuyPrice;
+            if (existingPortfolio) {
+                const newTotalQuantity = existingPortfolio.quantity + quantityNum;
+                newAverageBuyPrice = ((existingPortfolio.quantity * existingPortfolio.averageBuyPrice) + totalCost) / newTotalQuantity;
+            } else {
+                newAverageBuyPrice = priceNum;
             }
 
-            // Update user wallet
-            await User.findByIdAndUpdate(
-                userId,
-                { $inc: { wallet: -totalCost } }
-            );
-
-            // Find existing portfolio
-            const existingPortfolio = await Portfolio.findOne({ userId, coinId });
-            
-            if (existingPortfolio) {
-                // Calculate new average price
-                const newTotalQuantity = existingPortfolio.quantity + quantityNum;
-                const newAverageBuyPrice = (
-                    (existingPortfolio.quantity * existingPortfolio.averageBuyPrice) + totalCost
-                ) / newTotalQuantity;
-
-                // Update portfolio with coin data
-                await Portfolio.findOneAndUpdate(
+            // Perform all database writes and cache invalidation concurrently
+            await Promise.all([
+                User.findByIdAndUpdate(userId, { $inc: { wallet: -totalCost } }),
+                Portfolio.findOneAndUpdate(
                     { userId, coinId },
                     {
-                        $set: { 
+                        $set: {
                             averageBuyPrice: newAverageBuyPrice,
                             crypto: coinData.name,
                             image: coinData.image,
                             symbol: coinData.symbol
                         },
                         $inc: { quantity: quantityNum }
-                    }
-                );
-            } else {
-                // Create new portfolio entry with coin data
-                await Portfolio.create({
+                    },
+                    { upsert: true, new: true }
+                ),
+                Transaction.create({
                     userId,
+                    type: 'buy',
                     coinId,
                     quantity: quantityNum,
-                    averageBuyPrice: priceNum,
-                    crypto: coinData.name,
-                    image: coinData.image,
-                    symbol: coinData.symbol
-                });
-            }
-
-            // Create transaction record
-            await Transaction.create({
-                userId,
-                type: 'buy',
-                coinId,
-                quantity: quantityNum,
-                price: priceNum,
-                totalCost,
-                timestamp: new Date()
-            });
-
-            // --- CACHE INVALIDATION ---
-            // Clear the cached portfolio data for this user
-            try {
-                await redisClient.del(`portfolio:${userId}`);
-            } catch (cacheError) {
-                console.error(`Redis DEL error for key portfolio:${userId}:`, cacheError.message);
-            }
-            // --- END CACHE INVALIDATION ---
+                    price: priceNum,
+                    totalCost,
+                    timestamp: new Date()
+                }),
+                redisClient.del(`portfolio:${userId}`)
+            ]);
 
             res.redirect('/portfolio');
         } catch (error) {
@@ -677,7 +644,7 @@ class CryptoController {
 
             // Add timeout to prevent hanging
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Chart request timeout')), 10000) // 10 second timeout
+                setTimeout(() => reject(new Error('Chart request timeout')), 30000) // 30 second timeout
             );
 
             const chartData = await Promise.race([chartDataPromise, timeoutPromise]);
@@ -706,26 +673,29 @@ class CryptoController {
     static async showCryptoDetail(req, res) {
         try {
             const { coinId } = req.params;
-            
-            // Fetch comprehensive coin data
-            const coinData = await fetchCoinGeckoDataWithCache(
-                `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&community_data=false&developer_data=false`,
-                null,
-                `coin-detail-${coinId}`,
-                5 * 60 * 1000 // 5 minutes cache
-            );
+
+            const userId = req.cookies.user;
+
+            // Fetch comprehensive coin data, chart data, and user's holdings in parallel
+            const [coinData, chartData, userHolding] = await Promise.all([
+                fetchCoinGeckoDataWithCache(
+                    `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&community_data=false&developer_data=false`,
+                    null,
+                    `coin-detail-${coinId}`,
+                    5 * 60 * 1000 // 5 minutes cache
+                ),
+                fetchCoinGeckoDataWithCache(
+                    `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`,
+                    null,
+                    `chart-${coinId}-1`,
+                    5 * 60 * 1000
+                ),
+                userId ? Portfolio.findOne({ userId, coinId }).lean() : Promise.resolve(null)
+            ]);
 
             if (!coinData) {
                 throw new Error('Coin not found');
             }
-
-            // Fetch 24h chart data for the main chart
-            const chartData = await fetchCoinGeckoDataWithCache(
-                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`,
-                null,
-                `chart-${coinId}-1`,
-                5 * 60 * 1000
-            );
 
             // Fetch news (using a placeholder for now, you can integrate a news API later)
             const newsData = [];
@@ -755,6 +725,7 @@ class CryptoController {
                     description: coinData.description?.en,
                     genesis_date: coinData.genesis_date
                 },
+                userHolding,
                 chartData: chartData?.prices || [],
                 news: newsData,
                 user: res.locals.user
@@ -781,14 +752,19 @@ class CryptoController {
                     total_volume: basePrice * 50000,
                     high_24h: basePrice * 1.05,
                     low_24h: basePrice * 0.95,
-                    ath: basePrice * 2,
-                    atl: basePrice * 0.1,
-                    description: 'Cryptocurrency data temporarily unavailable.'
+                    ath: basePrice * 1.2,
+                    ath_date: new Date().toISOString(),
+                    atl: basePrice * 0.8,
+                    atl_date: new Date().toISOString(),
+                    circulating_supply: 1000000,
+                    total_supply: 1000000,
+                    max_supply: 1000000,
+                    description: 'No description available.',
+                    genesis_date: null
                 },
-                chartData: generateMockChartData(basePrice, '1').prices,
+                chartData: generateMockChartData(basePrice, '1'),
                 news: [],
-                user: res.locals.user,
-                error: 'Using fallback data - live data temporarily unavailable'
+                user: res.locals.user
             });
         }
     }

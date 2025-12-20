@@ -35,6 +35,13 @@
                                 {{#if (gt coin.price_change_percentage_24h 0)}}+{{/if}}{{formatPrice coin.price_change_24h}} ({{#if (gt coin.price_change_percentage_24h 0)}}+{{/if}}{{formatPrice coin.price_change_percentage_24h}}%) 24H
                             </div>
                         </div>
+                        {{#if userHolding}}
+                        <div class="user-holding-info">
+                            <div class="holding-label">You Own</div>
+                            <div class="holding-value">{{formatPrice userHolding.quantity}} {{coin.symbol}}</div>
+                            <div class="holding-usd-value">≈ ${{formatPrice (multiply userHolding.quantity coin.current_price)}}</div>
+                        </div>
+                        {{/if}}
                         <div class="chart-timeframes-bottom compact">
                             <button class="timeframe-btn-bottom" data-timeframe="1h">1H</button>
                             <button class="timeframe-btn-bottom active" data-timeframe="24h">24H</button>
@@ -207,7 +214,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Amount ({{coin.symbol}})</label>
+                            <label class="form-label">Quantity ({{coin.symbol}})</label>
                             <input type="number"
                                    name="quantity"
                                    class="form-control-detail"
@@ -240,6 +247,8 @@
                             <div class="total-value" id="buyTotal">$0.00</div>
                         </div>
 
+                        <div id="buy-error-message" class="error-message-box" style="display: none;"></div>
+
                         <button type="submit" class="btn-trade btn-buy">Buy {{coin.symbol}}</button>
                     </form>
 
@@ -254,7 +263,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Amount ({{coin.symbol}})</label>
+                            <label class="form-label">Quantity ({{coin.symbol}})</label>
                             <input type="number"
                                    name="quantity"
                                    class="form-control-detail"
@@ -278,8 +287,8 @@
                         </div>
 
                         <div class="balance-info">
-                            <span>Wallet balance</span>
-                            <span class="balance-amount">{{#if user.wallet}}${{formatPrice user.wallet}}{{else}}--{{/if}}</span>
+                            <span>Available to sell</span>
+                            <span class="balance-amount">{{#if userHolding}}{{formatPrice userHolding.quantity}} {{coin.symbol}}{{else}}0 {{coin.symbol}}{{/if}}</span>
                         </div>
 
                         <div class="total-section">

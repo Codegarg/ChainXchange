@@ -17,7 +17,7 @@ const geckoQueue = async.queue(async (task) => {
             const response = await axios({
                 method: 'get',
                 url: task.url,
-                timeout: task.url.includes('market_chart') ? 8000 : 15000, // Shorter timeout for charts
+                timeout: 30000, // 30-second timeout for all requests
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
