@@ -682,6 +682,99 @@ class CryptoController {
             res.json(mockData);
         }
     }
+
+    /**
+     * Display detailed cryptocurrency page
+     */
+    static async showCryptoDetail(req, res) {
+        try {
+            const { coinId } = req.params;
+            
+            // Fetch comprehensive coin data
+            const coinData = await fetchCoinGeckoDataWithCache(
+                `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&community_data=false&developer_data=false`,
+                null,
+                `coin-detail-${coinId}`,
+                5 * 60 * 1000 // 5 minutes cache
+            );
+
+            if (!coinData) {
+                throw new Error('Coin not found');
+            }
+
+            // Fetch 24h chart data for the main chart
+            const chartData = await fetchCoinGeckoDataWithCache(
+                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`,
+                null,
+                `chart-${coinId}-1`,
+                5 * 60 * 1000
+            );
+
+            // Fetch news (using a placeholder for now, you can integrate a news API later)
+            const newsData = [];
+
+            res.render('crypto-detail', {
+                title: `${coinData.name} (${coinData.symbol?.toUpperCase()})`,
+                coin: {
+                    id: coinData.id,
+                    name: coinData.name,
+                    symbol: coinData.symbol?.toUpperCase(),
+                    image: coinData.image?.large,
+                    current_price: coinData.market_data?.current_price?.usd,
+                    price_change_24h: coinData.market_data?.price_change_24h,
+                    price_change_percentage_24h: coinData.market_data?.price_change_percentage_24h,
+                    market_cap: coinData.market_data?.market_cap?.usd,
+                    market_cap_rank: coinData.market_cap_rank,
+                    total_volume: coinData.market_data?.total_volume?.usd,
+                    high_24h: coinData.market_data?.high_24h?.usd,
+                    low_24h: coinData.market_data?.low_24h?.usd,
+                    ath: coinData.market_data?.ath?.usd,
+                    ath_date: coinData.market_data?.ath_date?.usd,
+                    atl: coinData.market_data?.atl?.usd,
+                    atl_date: coinData.market_data?.atl_date?.usd,
+                    circulating_supply: coinData.market_data?.circulating_supply,
+                    total_supply: coinData.market_data?.total_supply,
+                    max_supply: coinData.market_data?.max_supply,
+                    description: coinData.description?.en,
+                    genesis_date: coinData.genesis_date
+                },
+                chartData: chartData?.prices || [],
+                news: newsData,
+                user: res.locals.user
+            });
+        } catch (error) {
+            console.error('Crypto detail error:', error);
+            
+            // Fallback data
+            const { coinId } = req.params;
+            const basePrice = getBasePriceForCoin(coinId);
+            
+            res.render('crypto-detail', {
+                title: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+                coin: {
+                    id: coinId,
+                    name: coinId.charAt(0).toUpperCase() + coinId.slice(1),
+                    symbol: coinId.toUpperCase().substring(0, 4),
+                    image: '/images/default-coin.svg',
+                    current_price: basePrice,
+                    price_change_24h: basePrice * 0.025,
+                    price_change_percentage_24h: 2.5,
+                    market_cap: basePrice * 1000000,
+                    market_cap_rank: 1,
+                    total_volume: basePrice * 50000,
+                    high_24h: basePrice * 1.05,
+                    low_24h: basePrice * 0.95,
+                    ath: basePrice * 2,
+                    atl: basePrice * 0.1,
+                    description: 'Cryptocurrency data temporarily unavailable.'
+                },
+                chartData: generateMockChartData(basePrice, '1').prices,
+                news: [],
+                user: res.locals.user,
+                error: 'Using fallback data - live data temporarily unavailable'
+            });
+        }
+    }
 }
 
 module.exports = CryptoController;

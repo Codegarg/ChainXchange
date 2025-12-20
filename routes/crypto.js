@@ -5,6 +5,7 @@ const { isAuthenticated } = require('../middleware/auth');
 
 // Crypto Trading Routes
 router.get('/', CryptoController.showMarkets);
+router.get('/detail/:coinId', CryptoController.showCryptoDetail);
 router.post('/buy', isAuthenticated, CryptoController.buyCrypto);
 router.post('/sell', isAuthenticated, CryptoController.sellCrypto);
 router.get('/chart-data/:coinId', CryptoController.getChartData);

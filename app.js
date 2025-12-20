@@ -80,6 +80,14 @@ const hbs = expressHandlebars.create({
         },
         add: function(a, b) {
             return a + b;
+        },
+        calculateRangePosition: function(min, current, max) {
+            if (!min || !current || !max || max === min) return 50;
+            const position = ((current - min) / (max - min)) * 100;
+            return Math.max(0, Math.min(100, position)).toFixed(2);
+        },
+        json: function(context) {
+            return JSON.stringify(context);
         }
     }
 });
