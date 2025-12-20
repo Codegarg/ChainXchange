@@ -49,8 +49,7 @@
                         <th>Price</th>
                         <th>24h Change</th>
                         <th>Market Cap</th>
-                        <th>Volume (24h)</th> 
-                        <th>Actions</th>
+                        <th>Volume (24h)</th>
                     </tr>
                 </thead>
                 <tbody id="crypto-table">
@@ -68,34 +67,12 @@
                                     </div>
                                 </a>
                             </td>
-                            <td class="price-cell">${{formatPrice current_price}}</td>
+                            <td class="price-cell numeric-cell">${{formatPrice current_price}}</td>
                             <td class="change-cell {{#if (gt price_change_percentage_24h 0)}}change-positive{{else}}change-negative{{/if}}">
                                 {{#if (gt price_change_percentage_24h 0)}}+{{/if}}{{formatPrice price_change_percentage_24h}}%
                             </td>
-                            <td>${{formatNumber market_cap}}</td>
-                            <td>${{formatNumber total_volume}}</td>
-                            <td>
-                                {{#if ../user}}
-                                    <form action="/crypto/buy" method="POST" class="action-form">
-                                        <input type="hidden" name="coinId" value="{{id}}">
-                                        <input type="hidden" name="price" value="{{current_price}}">
-                                        <input type="number" 
-                                               name="quantity" 
-                                               placeholder="0.00" 
-                                               required 
-                                               min="0.000001" 
-                                               step="0.000001"
-                                               class="form-control quantity-input">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="fas fa-shopping-cart"></i>&nbsp;Buy
-                                        </button>
-                                    </form>
-                                {{else}}
-                                    <a href="/auth/login" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-sign-in-alt"></i>&nbsp;Login to Trade
-                                    </a>
-                                {{/if}}
-                            </td>
+                            <td class="marketcap-cell numeric-cell">${{formatNumber market_cap}}</td>
+                            <td class="volume-cell numeric-cell">${{formatNumber total_volume}}</td>
                         </tr>
                     {{/each}}
                 </tbody>

@@ -550,11 +550,13 @@ table tbody tr:last-child td {
 .price-cell {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    text-align: right;
 }
 
 .change-cell {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    text-align: center;
 }
 
 .change-positive {
@@ -567,6 +569,21 @@ table tbody tr:last-child td {
 
 .change-neutral {
     color: var(--text-secondary);
+}
+
+.numeric-cell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.table th:nth-child(3),
+.table th:nth-child(5),
+.table th:nth-child(6) {
+    text-align: right;
+}
+
+.table th:nth-child(4) {
+    text-align: center;
 }
 
 /* Button Styles */
@@ -1739,6 +1756,192 @@ table tbody tr:last-child td {
     text-align: right;
 }
 
+/* Market Sentiment */
+.sentiment-card {
+    padding: 1.75rem;
+}
+
+.sentiment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.sentiment-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.sentiment-subtitle {
+    margin-top: 0.35rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.sentiment-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.sentiment-badge {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border: 1px solid rgba(2, 192, 118, 0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.sentiment-updated {
+    color: var(--text-muted);
+}
+
+.sentiment-progress-block {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sentiment-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.sentiment-progress {
+    display: flex;
+    width: 100%;
+    height: 14px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.sentiment-progress-fill {
+    height: 100%;
+    transition: width 0.7s ease;
+}
+
+.sentiment-progress-fill.buy {
+    background: linear-gradient(90deg, rgba(2, 192, 118, 0.9), rgba(2, 192, 118, 0.7));
+}
+
+.sentiment-progress-fill.sell {
+    background: linear-gradient(90deg, rgba(246, 70, 93, 0.9), rgba(246, 70, 93, 0.7));
+}
+
+.sentiment-pressure {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sentiment-pressure .buy {
+    color: var(--success-color);
+}
+
+.sentiment-pressure .sell {
+    color: var(--danger-color);
+}
+
+.sentiment-pressure .balanced {
+    color: var(--text-secondary);
+}
+
+.orderflow-card {
+    margin-top: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    background: var(--bg-secondary);
+}
+
+.orderflow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.orderflow-title {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.orderflow-frequency {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.orderflow-table-wrapper {
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--glass-bg);
+}
+
+.orderflow-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.orderflow-table th,
+.orderflow-table td {
+    padding: 0.65rem 0.9rem;
+    text-align: right;
+}
+
+.orderflow-table th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.orderflow-table td:first-child,
+.orderflow-table th:first-child {
+    text-align: left;
+}
+
+.orderflow-table tbody tr {
+    transition: background-color 0.35s ease, transform 0.25s ease;
+}
+
+.orderflow-table tbody tr:hover {
+    transform: translateX(2px);
+}
+
+.orderflow-price-buy {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.orderflow-price-sell {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.orderflow-qty-buy {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.orderflow-qty-sell {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
 .range-slider {
     position: relative;
     flex: 1;
@@ -2334,6 +2537,17 @@ table tbody tr:last-child td {
     .performance-metrics-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+
+    .sentiment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .orderflow-table th,
+    .orderflow-table td {
+        padding: 0.5rem 0.65rem;
+        font-size: 0.85rem;
     }
 }
 

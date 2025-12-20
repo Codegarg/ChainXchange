@@ -140,6 +140,51 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Market Sentiment / Buy-Sell Pressure -->
+            <div class="sentiment-card card" id="market-sentiment">
+                <div class="sentiment-header">
+                    <div>
+                        <h3 class="sentiment-title">Market Sentiment / Buy-Sell Pressure</h3>
+                        <p class="sentiment-subtitle">Live flow of buys vs sells updated every few seconds</p>
+                    </div>
+                    <div class="sentiment-meta">
+                        <span class="sentiment-badge">Live</span>
+                        <span class="sentiment-updated" id="sentiment-updated">Updating…</span>
+                    </div>
+                </div>
+
+                <div class="sentiment-progress-block">
+                    <div class="sentiment-labels">
+                        <span>Buy <strong id="sentiment-buy-percent">50%</strong></span>
+                        <span>Sell <strong id="sentiment-sell-percent">50%</strong></span>
+                    </div>
+                    <div class="sentiment-progress">
+                        <div class="sentiment-progress-fill buy" id="sentiment-buy-fill" style="width: 50%"></div>
+                        <div class="sentiment-progress-fill sell" id="sentiment-sell-fill" style="width: 50%"></div>
+                    </div>
+                    <div class="sentiment-pressure">Current market pressure: <span id="sentiment-pressure-label">Balanced</span></div>
+                </div>
+
+                <div class="orderflow-card">
+                    <div class="orderflow-header">
+                        <div class="orderflow-title">Live Order Flow</div>
+                        <div class="orderflow-frequency">Refreshes every 1-2s</div>
+                    </div>
+                    <div class="orderflow-table-wrapper">
+                        <table class="orderflow-table">
+                            <thead>
+                                <tr>
+                                    <th>Price</th>
+                                    <th>Buy Qty</th>
+                                    <th>Sell Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderflow-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column - Buy/Sell Panel -->
