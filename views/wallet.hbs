@@ -1,0 +1,558 @@
+{{!< layouts/main}}
+
+<style>
+    .wallet-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .wallet-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-with-balance {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-content {
+        flex: 1;
+    }
+
+    .balance-card-compact {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        color: white;
+        min-width: 250px;
+    }
+
+    .balance-card-compact .balance-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+    }
+
+    .balance-card-compact .balance-amount {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .balance-card-compact .secure-text {
+        opacity: 0.8;
+        font-size: 0.8rem;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .payment-options {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .balance-card {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        padding: 2rem;
+        border-radius: 12px;
+        color: white;
+        display: none;
+    }
+
+    .balance-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .payment-form {
+        background: var(--card-bg);
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .tx-type-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+    }
+
+    .tx-deposit {
+        background-color: rgba(0, 128, 0, 0.15);
+        color: var(--success-color);
+    }
+
+    .tx-withdrawal {
+        background-color: rgba(255, 0, 0, 0.15);
+        color: var(--danger-color);
+    }
+
+    .loading-spinner {
+        display: none;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+</style>
+<div class="wallet-container">
+    <div class="header-with-balance">
+        <div class="header-content">
+            <div class="page-header" style="margin-bottom: 0;">
+                <h1 class="page-title">
+                    <i class="fas fa-wallet"></i>&nbsp;Wallet
+                </h1>
+                <p class="page-subtitle">Manage your funds and view transaction history</p>
+            </div>
+        </div>
+        
+        <div class="balance-card-compact">
+            <div class="balance-label">Available Balance</div>
+            <div class="balance-amount" id="walletBalance" data-raw-balance="{{user.wallet}}">
+                ${{formatNumber user.wallet}}
+            </div>
+            <div class="secure-text">
+                <i class="fas fa-shield-alt"></i>&nbsp;Secure & Protected
+            </div>
+        </div>
+    </div>
+
+    <div class="wallet-grid">
+    <div class="wallet-grid">
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="card-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <div class="balance-label">Available Balance</div>
+            <div class="balance-amount" id="walletBalance" data-raw-balance="{{user.wallet}}">
+                ${{formatNumber user.wallet}}
+            </div>
+            <div style="opacity: 0.8; font-size: 0.9rem;">
+                <i class="fas fa-shield-alt"></i>&nbsp;Secure & Protected
+            </div>
+        </div>
+
+        <!-- Payment Options -->
+        <div class="payment-options">
+            <!-- Add Money Form -->
+            <div class="payment-form">
+                <h3 style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-plus-circle"></i>&nbsp;Add Money
+                </h3>
+                
+                <form id="addMoneyForm">
+                    <div class="form-group">
+                        <label class="form-label">Amount (USD)</label>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="amount" 
+                            name="amount" 
+                            placeholder="Enter amount" 
+                            min="1"
+                            step="0.01"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="cardNumber" 
+                            name="cardNumber" 
+                            placeholder="1234 5678 9012 3456" 
+                            maxlength="19"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Card Holder Name</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="cardHolder" 
+                            name="cardHolder" 
+                            placeholder="John Doe" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Expiry Date</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="expiryDate" 
+                                name="expiryDate" 
+                                placeholder="MM/YY" 
+                                maxlength="5"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">CVV</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="cvv" 
+                                name="cvv" 
+                                placeholder="123" 
+                                maxlength="3"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-lock"></i>&nbsp;Add Money Securely
+                        <span class="loading-spinner" id="loadingSpinner" style="display: none;"></span>
+                    </button>
+
+                    <div id="paymentMessage" style="margin-top: 1rem; text-align: center;"></div>
+                </form>
+            </div>
+
+            <!-- Withdraw Money Form -->
+            <div class="payment-form">
+                <h3 style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-minus-circle"></i>&nbsp;Withdraw Money
+                </h3>
+                
+                <form id="withdrawForm">
+                    <div class="form-group">
+                        <label class="form-label">Amount (USD)</label>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="withdrawAmount" 
+                            name="amount" 
+                            placeholder="Enter amount" 
+                            min="1"
+                            step="0.01"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="withdrawCardNumber" 
+                            name="cardNumber" 
+                            placeholder="1234 5678 9012 3456" 
+                            maxlength="19"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Card Holder Name</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="withdrawCardHolder" 
+                            name="cardHolder" 
+                            placeholder="John Doe" 
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-block">
+                        <i class="fas fa-arrow-up"></i>&nbsp;Withdraw Money
+                        <span class="loading-spinner" id="withdrawSpinner" style="display: none;"></span>
+                    </button>
+
+                    <div id="withdrawMessage" style="margin-top: 1rem; text-align: center;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-history"></i>&nbsp;Transaction History
+            </div>
+        </div>
+
+        {{#if transactions.length}}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Type</th>
+                            <th>Card</th>
+                            <th>Card Holder</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each transactions}}
+                        <tr class="fade-in">
+                            <td>{{this.formattedTimestamp}}</td>
+                            <td>
+                                <span class="tx-type-badge {{#if this.isDeposit}}tx-deposit{{else}}tx-withdrawal{{/if}}">
+                                    {{#if this.isDeposit}}
+                                        <i class="fas fa-arrow-down"></i>&nbsp;Deposit
+                                    {{else}}
+                                        <i class="fas fa-arrow-up"></i>&nbsp;Withdrawal
+                                    {{/if}}
+                                </span>
+                            </td>
+                            <td>{{this.cardNumber}}</td>
+                            <td>{{this.cardHolder}}</td>
+                            <td class="{{#if this.isDeposit}}text-success{{else}}text-danger{{/if}}" style="font-weight: bold;">
+                                {{#if this.isDeposit}}+{{/if}}${{formatNumber this.amount}}
+                            </td>
+                            <td>
+                                <span style="color: var(--success-color);">
+                                    <i class="fas fa-check-circle"></i>&nbsp;{{this.status}}
+                                </span>
+                            </td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div class="empty-state" style="padding: 3rem;">
+                <div class="empty-state-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="empty-state-title">No Transactions Yet</div>
+                <div class="empty-state-text">
+                    Your payment history will appear here once you make your first transaction.
+                </div>
+            </div>
+        {{/if}}
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/profile" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>&nbsp;Back to Profile
+        </a>
+    </div>
+</div>
+
+<script>
+    // Format card number with spaces
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
+    });
+
+    // Format expiry date
+    document.getElementById('expiryDate').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        e.target.value = value;
+    });
+
+    // CVV only numbers
+    document.getElementById('cvv').addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
+
+    // Withdraw form - Format card number with spaces
+    document.getElementById('withdrawCardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
+    });
+
+    // Handle add money form submission
+    document.getElementById('addMoneyForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const spinner = document.getElementById('loadingSpinner');
+        const messageDiv = document.getElementById('paymentMessage');
+
+        submitBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        messageDiv.innerHTML = '';
+
+        const formData = {
+            amount: document.getElementById('amount').value,
+            cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+            cardHolder: document.getElementById('cardHolder').value,
+            expiryDate: document.getElementById('expiryDate').value,
+            cvv: document.getElementById('cvv').value
+        };
+
+        try {
+            const response = await fetch('/payment/add-money', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                messageDiv.innerHTML = `<div style="color: var(--success-color); padding: 1rem; background: rgba(0, 128, 0, 0.1); border-radius: 8px;">
+                    <i class="fas fa-check-circle"></i>&nbsp;${data.message}
+                </div>`;
+                
+                // Update balance display
+                document.getElementById('walletBalance').textContent = '$' + data.newBalance.toLocaleString();
+                
+                // Reset form
+                e.target.reset();
+                
+                // Reload page after 2 seconds to show updated history
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                messageDiv.innerHTML = `<div style="color: var(--danger-color); padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: 8px;">
+                    <i class="fas fa-exclamation-circle"></i>&nbsp;${data.message}
+                </div>`;
+            }
+        } catch (error) {
+            messageDiv.innerHTML = `<div style="color: var(--danger-color); padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: 8px;">
+                <i class="fas fa-exclamation-circle"></i>&nbsp;Error processing payment
+            </div>`;
+        } finally {
+            submitBtn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+
+    // Handle withdraw form submission
+    document.getElementById('withdrawForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const spinner = document.getElementById('withdrawSpinner');
+        const messageDiv = document.getElementById('withdrawMessage');
+
+        const amount = parseFloat(document.getElementById('withdrawAmount').value);
+        const currentBalance = parseFloat(document.getElementById('walletBalance').getAttribute('data-raw-balance'));
+
+        // Check if user has sufficient balance
+        if (amount > currentBalance) {
+            messageDiv.innerHTML = `<div style="color: var(--danger-color); padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: 8px;">
+                <i class="fas fa-exclamation-circle"></i>&nbsp;Insufficient balance. Available: $${currentBalance.toLocaleString()}
+            </div>`;
+            return;
+        }
+
+        submitBtn.disabled = true;
+        spinner.style.display = 'inline-block';
+        messageDiv.innerHTML = '';
+
+        const formData = {
+            amount: amount,
+            cardNumber: document.getElementById('withdrawCardNumber').value.replace(/\s/g, ''),
+            cardHolder: document.getElementById('withdrawCardHolder').value
+        };
+
+        try {
+            const response = await fetch('/payment/withdraw', {
+                method: 'POST',
+                const newBalance = data.newBalance;
+                document.getElementById('walletBalance').setAttribute('data-raw-balance', newBalance);
+                const formattedBalance = newBalance >= 1000 ? 
+                    (newBalance >= 1000000 ? '$' + (newBalance / 1000000).toFixed(2) + 'M' : '$' + (newBalance / 1000).toFixed(2) + 'K') : 
+                    '$' + newBalance.toLocaleString();
+                document.getElementById('walletBalance').innerHTML = formattedBalance;
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                messageDiv.innerHTML = `<div style="color: var(--success-color); padding: 1rem; background: rgba(0, 128, 0, 0.1); border-radius: 8px;">
+                    <i class="fas fa-check-circle"></i>&nbsp;${data.message}
+                </div>`;
+                
+                // Update balance display
+                const newBalance = data.newBalance;
+                document.getElementById('walletBalance').setAttribute('data-raw-balance', newBalance);
+                document.getElementById('walletBalance').innerHTML = '$' + newBalance.toLocaleString();
+                
+                // Reset form
+                e.target.reset();
+                
+                // Reload page after 2 seconds to show updated history
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                messageDiv.innerHTML = `<div style="color: var(--danger-color); padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: 8px;">
+                    <i class="fas fa-exclamation-circle"></i>&nbsp;${data.message}
+                </div>`;
+            }
+        } catch (error) {
+            messageDiv.innerHTML = `<div style="color: var(--danger-color); padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: 8px;">
+                <i class="fas fa-exclamation-circle"></i>&nbsp;Error processing withdrawal
+            </div>`;
+        } finally {
+            submitBtn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+</script>

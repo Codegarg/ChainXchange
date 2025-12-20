@@ -12,6 +12,7 @@ const MongoStore = require('connect-mongo');
 
 const authRoutes = require('./routes/auth.js');
 const cryptoRoutes = require('./routes/crypto.js');
+const paymentRoutes = require('./routes/payment.js');
 const User = require('./models/User.js');
 const { isAuthenticated } = require('./middleware/auth');
 const HomeController = require('./controllers/homeController');
@@ -151,6 +152,7 @@ app.use(async (req, res, next) => {
 
 app.use('/auth', authRoutes);
 app.use('/crypto', cryptoRoutes);
+app.use('/payment', paymentRoutes);
 
 // Main Application Routes
 app.get('/', HomeController.showHome);
