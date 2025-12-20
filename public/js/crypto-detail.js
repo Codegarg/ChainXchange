@@ -4,24 +4,16 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize chart
     initializeChart();
-    
-    // Setup trading panel
     setupTradingPanel();
-    
-    // Setup timeframe buttons
     setupTimeframeButtons();
-    
-    // Setup order type buttons
     setupOrderTypeButtons();
-    
-    // Calculate totals
     setupTotalCalculations();
 });
 
 let priceChart = null;
-let currentTimeframe = '1';
+let currentTimeframe = '24h';
+let chartResizeObserver = null;
 
 /**
  * Initialize the price chart
@@ -31,6 +23,8 @@ function initializeChart() {
     if (!ctx) return;
     
     const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+    const chartContainer = document.querySelector('.chart-container-detail');
+    registerZoomPlugin();
     
     // Get initial chart data from window object
     const chartData = window.coinData?.chartData || [];
@@ -100,6 +94,27 @@ function initializeChart() {
                             return '$' + formatPrice(context.parsed.y);
                         }
                     }
+                },
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true
+                        },
+                        pinch: {
+                            enabled: true
+                        },
+                        mode: 'x',
+                        drag: {
+                            enabled: false
+                        }
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'x'
+                    },
+                    limits: {
+                        y: { min: 'original', max: 'original' }
+                    }
                 }
             },
             scales: {
@@ -113,11 +128,10 @@ function initializeChart() {
                         maxTicksLimit: 8,
                         callback: function(value, index, values) {
                             const date = new Date(this.getLabelForValue(value));
-                            if (currentTimeframe === '1') {
+                            if (currentTimeframe === '1h' || currentTimeframe === '24h') {
                                 return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                            } else {
-                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                             }
+                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         }
                     }
                 },
@@ -139,11 +153,46 @@ function initializeChart() {
         }
     });
     
+    if (chartContainer) {
+        setupChartResizeObserver(chartContainer);
+    }
+    
+    ctx.addEventListener('dblclick', () => {
+        if (priceChart?.resetZoom) {
+            priceChart.resetZoom();
+        }
+    });
+    
     // Hide loading indicator
     const loadingEl = document.getElementById('chartLoading');
     if (loadingEl) {
         loadingEl.style.display = 'none';
     }
+}
+
+function registerZoomPlugin() {
+    const zoomPlugin = window.ChartZoom || window.ChartjsPluginZoom || window['chartjs-plugin-zoom'];
+    if (zoomPlugin && Chart?.register) {
+        try {
+            Chart.register(zoomPlugin);
+        } catch (err) {
+            console.error('Zoom plugin registration failed', err);
+        }
+    }
+}
+
+function setupChartResizeObserver(container) {
+    if (chartResizeObserver) {
+        chartResizeObserver.disconnect();
+    }
+    chartResizeObserver = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.contentRect.width > 0 && priceChart) {
+                priceChart.resize();
+            }
+        });
+    });
+    chartResizeObserver.observe(container);
 }
 
 /**
@@ -176,22 +225,16 @@ function setupTradingPanel() {
  */
 function setupTimeframeButtons() {
     const timeframeButtons = document.querySelectorAll('.timeframe-btn-bottom');
-    
+
     timeframeButtons.forEach(button => {
         button.addEventListener('click', async () => {
-            const days = button.getAttribute('data-days');
-            
-            // Remove active class from all buttons
+            const timeframe = button.getAttribute('data-timeframe');
+
             timeframeButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Add active class to clicked button
             button.classList.add('active');
-            
-            // Update current timeframe
-            currentTimeframe = days === 'max' ? '365' : days;
-            
-            // Load new chart data
-            await loadChartData(days);
+
+            currentTimeframe = timeframe;
+            await loadChartData(timeframe);
         });
     });
 }
@@ -201,87 +244,81 @@ function setupTimeframeButtons() {
  */
 function setupOrderTypeButtons() {
     const orderTypeButtons = document.querySelectorAll('.order-type-btn');
-    
+
     orderTypeButtons.forEach(button => {
         button.addEventListener('click', () => {
+            const orderAction = button.getAttribute('data-order-action');
             const container = button.closest('.order-type-buttons');
             const buttons = container.querySelectorAll('.order-type-btn');
-            
+
             buttons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
+
+            toggleLimitFields(orderAction, button.getAttribute('data-order-type'));
+            updateTotals(orderAction);
         });
     });
+
+    ['buy', 'sell'].forEach(action => toggleLimitFields(action, 'market'));
 }
 
 /**
  * Setup total calculations for buy/sell forms
  */
 function setupTotalCalculations() {
-    const buyQuantityInput = document.getElementById('buyQuantity');
-    const sellQuantityInput = document.getElementById('sellQuantity');
-    const currentPrice = window.coinData?.currentPrice || 0;
-    
-    if (buyQuantityInput) {
-        buyQuantityInput.addEventListener('input', (e) => {
-            const quantity = parseFloat(e.target.value) || 0;
-            const total = quantity * currentPrice;
-            const totalElement = document.getElementById('buyTotal');
-            if (totalElement) {
-                totalElement.textContent = '$' + formatPrice(total);
-            }
-        });
-    }
-    
-    if (sellQuantityInput) {
-        sellQuantityInput.addEventListener('input', (e) => {
-            const quantity = parseFloat(e.target.value) || 0;
-            const total = quantity * currentPrice;
-            const totalElement = document.getElementById('sellTotal');
-            if (totalElement) {
-                totalElement.textContent = '$' + formatPrice(total);
-            }
-        });
-    }
+    ['buy', 'sell'].forEach(action => {
+        const qtyInput = document.getElementById(`${action}Quantity`);
+        const limitInput = document.getElementById(`${action}LimitPrice`);
+
+        if (qtyInput) {
+            qtyInput.addEventListener('input', () => updateTotals(action));
+        }
+
+        if (limitInput) {
+            limitInput.addEventListener('input', () => updateTotals(action));
+        }
+
+        updateTotals(action);
+    });
 }
 
 /**
  * Load chart data for different timeframes
  */
-async function loadChartData(days) {
+async function loadChartData(timeframe) {
     if (!priceChart) return;
-    
+
     const loadingEl = document.getElementById('chartLoading');
     if (loadingEl) {
         loadingEl.style.display = 'flex';
     }
-    
+
     try {
         const coinId = window.coinData?.id;
-        const daysParam = days === 'max' ? 'max' : days;
-        
-        const response = await fetch(`/crypto/chart-data/${coinId}?days=${daysParam}`);
+        const response = await fetch(`/crypto/chart-data/${coinId}?timeframe=${timeframe}`);
         const data = await response.json();
-        
+
         if (data && data.prices) {
             const labels = data.prices.map(point => new Date(point[0]));
             const prices = data.prices.map(point => point[1]);
-            
-            // Determine if price is up or down
+
             const firstPrice = prices[0] || 0;
             const lastPrice = prices[prices.length - 1] || 0;
             const isPositive = lastPrice >= firstPrice;
-            
+
             const gradientColor = isPositive ? 'rgba(2, 192, 118, 0.1)' : 'rgba(246, 70, 93, 0.1)';
             const lineColor = isPositive ? '#02c076' : '#f6465d';
-            
-            // Update chart data
+
             priceChart.data.labels = labels;
             priceChart.data.datasets[0].data = prices;
             priceChart.data.datasets[0].borderColor = lineColor;
             priceChart.data.datasets[0].backgroundColor = gradientColor;
             priceChart.data.datasets[0].pointHoverBackgroundColor = lineColor;
-            
-            priceChart.update('none'); // Update without animation for smoother transition
+
+            if (priceChart.resetZoom) {
+                priceChart.resetZoom();
+            }
+            priceChart.update('none');
         }
     } catch (error) {
         console.error('Error loading chart data:', error);
@@ -289,6 +326,53 @@ async function loadChartData(days) {
         if (loadingEl) {
             loadingEl.style.display = 'none';
         }
+    }
+}
+
+function toggleLimitFields(action, orderType) {
+    const limitInput = document.getElementById(`${action}LimitPrice`);
+    const hiddenPrice = document.getElementById(`${action}PriceHidden`);
+    if (!limitInput || !hiddenPrice) return;
+
+    if (orderType === 'limit') {
+        limitInput.disabled = false;
+        limitInput.placeholder = 'Set your limit price';
+        if (!limitInput.value) {
+            limitInput.value = (window.coinData?.currentPrice || 0).toFixed(2);
+        }
+        hiddenPrice.value = limitInput.value;
+    } else {
+        limitInput.disabled = true;
+        limitInput.value = '';
+        limitInput.placeholder = 'Using market price';
+        hiddenPrice.value = window.coinData?.currentPrice || 0;
+    }
+}
+
+function updateTotals(action) {
+    const qtyInput = document.getElementById(`${action}Quantity`);
+    const limitInput = document.getElementById(`${action}LimitPrice`);
+    const totalElement = document.getElementById(`${action}Total`);
+    const fiatHint = document.getElementById(`${action}FiatHint`);
+    const hiddenPrice = document.getElementById(`${action}PriceHidden`);
+    if (!qtyInput || !totalElement || !hiddenPrice) return;
+
+    const quantity = parseFloat(qtyInput.value) || 0;
+    const isLimit = limitInput && !limitInput.disabled;
+    const pricePerUnit = isLimit
+        ? (parseFloat(limitInput.value) || 0)
+        : (window.coinData?.currentPrice || 0);
+
+    const total = quantity * pricePerUnit;
+
+    hiddenPrice.value = pricePerUnit || 0;
+
+    if (totalElement) {
+        totalElement.textContent = '$' + formatPrice(total);
+    }
+
+    if (fiatHint) {
+        fiatHint.textContent = `$${formatPrice(total)}`;
     }
 }
 

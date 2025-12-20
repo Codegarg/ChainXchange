@@ -649,36 +649,53 @@ class CryptoController {
     static async getChartData(req, res) {
         try {
             const { coinId } = req.params;
-            const days = req.query.days || '7';
-            
+            const timeframe = (req.query.timeframe || req.query.days || '24h').toLowerCase();
+
+            const timeframeMap = {
+                '1h': { days: '1', interval: 'minute' },
+                '24h': { days: '1' },
+                '7d': { days: '7' },
+                '1m': { days: '30' },
+                '3m': { days: '90' },
+                '1y': { days: '365' },
+                'all': { days: 'max' }
+            };
+
+            const selected = timeframeMap[timeframe] || { days: req.query.days || '7' };
+            const queryParams = [`vs_currency=usd`, `days=${selected.days}`];
+            if (selected.interval) {
+                queryParams.push(`interval=${selected.interval}`);
+            }
+
             // Set a shorter timeout for chart requests
             const chartDataPromise = fetchCoinGeckoDataWithCache(
-                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`,
+                `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?${queryParams.join('&')}`,
                 null,
-                `chart-${coinId}-${days}`,
+                `chart-${coinId}-${timeframe}`,
                 5 * 60 * 1000 // 5 minutes cache
             );
-            
+
             // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Chart request timeout')), 10000) // 10 second timeout
             );
-            
+
             const chartData = await Promise.race([chartDataPromise, timeoutPromise]);
-            
+
             // Validate data structure
             if (!chartData || !chartData.prices || !Array.isArray(chartData.prices)) {
                 throw new Error('Invalid chart data structure');
             }
-            
+
             res.json(chartData);
         } catch (error) {
             console.error('Chart data error:', error);
-            
-            // Generate realistic fallback data based on coinId and days
+
+            // Generate realistic fallback data based on coinId and timeframe
             const basePrice = getBasePriceForCoin(req.params.coinId);
-            const mockData = generateMockChartData(basePrice, req.query.days || '7');
-            
+            const mockRange = req.query.timeframe || req.query.days || '7';
+            const mockData = generateMockChartData(basePrice, mockRange);
+
             res.json(mockData);
         }
     }
