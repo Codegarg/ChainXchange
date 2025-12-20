@@ -114,10 +114,10 @@ class PaymentController {
     static async withdrawMoney(req, res) {
         try {
             const userId = req.cookies.user;
-            const { amount, cardNumber, cardHolder } = req.body;
+            const { amount, cardNumber, cardHolder, expiryDate, cvv } = req.body;
 
             // Validate input
-            if (!amount || !cardNumber || !cardHolder) {
+            if (!amount || !cardNumber || !cardHolder || !expiryDate || !cvv) {
                 return res.status(400).json({ 
                     success: false, 
                     message: 'All fields are required' 
